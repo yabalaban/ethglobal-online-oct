@@ -10,3 +10,12 @@
 [submodule "packages/contracts/lib/solmate"]
 	path = packages/contracts/lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "packages/contracts/lib/sdai"]
+	path = packages/contracts/lib/sdai
+	url = https://github.com/makerdao/sdai
+[submodule "packages/contracts/lib/aave-v3-periphery"]
+	path = packages/contracts/lib/aave-v3-periphery
+	url = https://github.com/aave/aave-v3-periphery
+[submodule "packages/contracts/lib/aave-v3-core"]
+	path = packages/contracts/lib/aave-v3-core
+	url = https://github.com/aave/aave-v3-core

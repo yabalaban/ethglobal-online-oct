@@ -1,3 +1,7 @@
 forge-std/=lib/forge-std/src/
 @openzeppelin/=lib/openzeppelin-contracts/
 @uma/=lib/protocol/packages/
+@solmate/=lib/solmate/src/
+@sdai/=lib/sdai/src/
+@spark-periphery/=lib/aave-v3-periphery/contracts/
+@spark-core/=lib/aave-v3-core/contracts/
