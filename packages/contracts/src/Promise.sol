@@ -5,10 +5,7 @@ import "@uma/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 import "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// This Isurance contract enables for the issuance of a single unlimited time policy per event/payout recipient There is
-// no limit to the number of payout requests that can be made of the same policy; however, only the first asserted
-// request will settle the insurance payment, whereas OOv3 will settle bonds for all requestors.
-contract Insurance {
+contract CryptoVCProtocol {
     using SafeERC20 for IERC20;
     IERC20 public immutable defaultCurrency;
     OptimisticOracleV3Interface public immutable oo;
@@ -17,23 +14,23 @@ contract Insurance {
 
     struct Promise {
         bytes statement;
-        address promisor; 
+        address promisor;
         bool fullfilled;
         bool asserted;
     }
 
     mapping(bytes32 => bytes32) public assertedPromises;
     mapping(bytes32 => Promise) public promises;
-   
+
     event PromiseAsserted(
         bytes32 indexed promiseId,
         address indexed promisor,
         bool indexed fullfilled
     );
     event PromiseAssertionRequested(
-        bytes32 indexed promiseId, 
+        bytes32 indexed promiseId,
         bytes32 indexed assertionId
-    ); 
+    );
     event PromiseIssued(
         bytes32 indexed promiseId,
         address indexed promisor
@@ -54,7 +51,7 @@ contract Insurance {
             asserted: false
         });
         emit PromiseIssued(promiseId, msg.sender);
-    } 
+    }
 
     function getFullfilled(bytes32 promiseId) public view returns (bool, bool) {
         return (promises[promiseId].fullfilled, promises[promiseId].asserted);
@@ -103,6 +100,6 @@ contract Insurance {
     // If assertion is disputed, do nothing and wait for resolution.
     function assertionDisputedCallback(bytes32 assertionId) public {
         // require(msg.sender == address(oo));
-        // TODO: emit event and do some fancy logic with xmtp/pushes? 
+        // TODO: emit event and do some fancy logic with xmtp/pushes?
     }
 }
