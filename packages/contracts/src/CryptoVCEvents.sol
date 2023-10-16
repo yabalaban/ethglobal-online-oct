@@ -9,4 +9,24 @@ interface CryptoVCEvents {
         uint256 fundingRequired,
         bytes cid
     );
+
+    event ProjectFunded(
+        bytes32 indexed projectId,
+        address indexed funder,
+        uint256 amount
+    );
+
+    event ProjectStarted(bytes32 indexed projectId);
+
+    event ProjectCompleted(bytes32 indexed projectId);
+
+    event TrancheRequested(
+        bytes32 indexed trancheId,
+        bytes32 indexed projectId,
+        uint256 amount,
+        bytes claim
+    );
+
+    event TrancheClaimed(bytes32 indexed trancheId, bytes32 indexed projectId, uint256 amount);
+    event TrancheFailed(bytes32 indexed trancheId, bytes32 indexed projectId, uint256 amount);
 }

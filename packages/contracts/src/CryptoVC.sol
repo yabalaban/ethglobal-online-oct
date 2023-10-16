@@ -19,6 +19,10 @@ import {IWrappedTokenGatewayV3} from "@spark-periphery/misc/interfaces/IWrappedT
 import {ClaimData} from "@uma/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 
+// safe
+import {SafeProxyFactory} from "@safe/proxies/SafeProxyFactory.sol";
+import {SafeProxy} from "@safe/proxies/SafeProxy.sol";
+
 // internals
 import {CryptoVCEvents} from "./CryptoVCEvents.sol";
 
@@ -27,7 +31,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
 
     enum ProjectState {
         Created,
-        Funded,
+        Started,
         Completed,
         Failed
     }
@@ -38,11 +42,20 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         uint256 ethCollateralDeposit;
         uint256 totalFundingRequired;
         uint256 totalFundingReceived;
-        uint256 totalFundtinAllocated;
+        uint256 totalFundingAllocated;
         uint256 daiDeposit;
         ProjectState state;
         bytes cid;
+        address[] funders;
+        address safe;
         // TODO: check if we need more states?
+    }
+
+    struct Tranche {
+        bytes32 projectId;
+        uint256 amount;
+        bytes claim;
+        bool claimed;
     }
 
     /// @dev The minimum value required to create a project.
@@ -54,8 +67,12 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
     ISavingsDai private immutable _savingsDai;
     IWrappedTokenGatewayV3 private immutable _sparkETHGateway;
     IPool private immutable _sparkPool;
+    SafeProxyFactory private immutable _safeFactory;
+    address private immutable _safeSingleton;
 
     mapping(bytes32 => Project) private _projects;
+    mapping(address => mapping (bytes32 => uint256)) private _fundings;
+    mapping(bytes32 => Tranche) private _tranches;
 
     modifier onlyUmaOracle() {
         require(msg.sender == address(_umaOracle), "Only UMA oracle can call this function");
@@ -68,6 +85,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         ISavingsDai savingsDai_,
         IWrappedTokenGatewayV3 sparkETHGateway_,
         IPoolAddressesProvider sparkPoolAddressesProvider_,
+        SafeProxyFactory safeFactory_,
+        address safeSignleton_,
         address trustredForwarder_
     )
         ERC2771Context(trustredForwarder_)
@@ -78,6 +97,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         _defaultIdentifier = umaOracle_.defaultIdentifier();
         _sparkETHGateway = sparkETHGateway_;
         _sparkPool = IPool(sparkPoolAddressesProvider_.getPool());
+        _safeFactory = safeFactory_;
+        _safeSingleton = safeSignleton_;
 
         _defaultCurrency.safeApprove(address(_savingsDai), type(uint256).max);
     }
@@ -91,6 +112,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         uint256 fundingRequired
     ) external payable {
         require(msg.value > MIN_VALUE, "Value must be greater than MIN_VALUE");
+        require(fundingRequired > 0, "Funding required must be greater than 0");
 
         // deposit ETH to Spark as collateral
         _sparkETHGateway.depositETH{value: msg.value}(address(_sparkPool), address(this), 0);
@@ -103,15 +125,22 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
 
         // creating project
         bytes32 projectId = keccak256(abi.encodePacked(msg.sender, cid));
+
+        address[] memory funders = new address[](1);
+        funders[0] = msg.sender;
+
         _projects[projectId] = Project({
             id: projectId,
             creator: msg.sender,
             ethCollateralDeposit: msg.value,
             totalFundingRequired: fundingRequired,
-            totalFundtinAllocated: 0,
+            totalFundingReceived: 0,
+            totalFundingAllocated: 0,
             daiDeposit: toBorrow,
             state: ProjectState.Created,
-            cid: cid
+            cid: cid,
+            funders: funders,
+            safe: address(0)
         });
 
         emit ProjectCreated(projectId, msg.sender, msg.value, fundingRequired, cid);
@@ -121,74 +150,88 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         bytes32 id,
         uint256 amount
     ) external {
+        address sender = _msgSender();
+
         Project storage project = _projects[id];
         require(project.id == id, "Project must exist");
         require(project.state == ProjectState.Created, "Project must be in Created state");
+        require(project.creator != sender, "Cannot fund your own project");
 
-        require(_defaultCurrency.allowance(_msgSender(), address(this)) >= amount, "Must approve DAI first");
+        require(_defaultCurrency.allowance(sender, address(this)) >= amount, "Must approve DAI first");
+
+        project.funders.push(sender);
+        _fundings[sender][id] += amount;
 
         uint256 fundingLeftToMeet = project.totalFundingRequired - project.totalFundingReceived;
         if (amount >= fundingLeftToMeet) {
             amount = fundingLeftToMeet;
-            project.state = ProjectState.Funded;
-            // TODO: start project
         }
 
         project.totalFundingReceived += amount;
 
-        _defaultCurrency.transferFrom(_msgSender(), address(this), amount);
-        _savingsDai.deposit(amount, address(this));
+        if (project.totalFundingReceived == project.totalFundingRequired) {
+            _startProject(project);
+        }
 
-        // TODO: add struct to hold funding requests
-        // when we get enough funding, we can start the project
-        // TODO: start project by creating safe with funders as owners
-        // - transfer of funds into safe via DAI->sDAI
-        // - transfer of bootstrap funds
-
-        // - allow the creator to request funds by proposing a UMA tx to safe
-        // - owners can vote on the tx
-        // - the tx post asserting to UMA on behalf of the safe
-        // - as it completed, the safe can withdraw funds to the creator
+        emit ProjectFunded(id, sender, amount);
     }
 
-    function createAssertion() external {
-        // uint256 bond = _umaOracle.getMinimumBond(address(defaultCurrency));
-        // defaultCurrency.safeTransferFrom(_msgSender(), address(this), bond);
-        // defaultCurrency.forceApprove(address(_umaOracle), bond);
+    function requestTranche(bytes32 id, uint256 amount, bytes calldata claim) external {
+        Project storage project = _projects[id];
+        require(project.id == id, "Project must exist");
+        require(project.state == ProjectState.Started, "Project must be in Started state");
+        require(project.safe == _msgSender(), "Only safe can request tranche");
 
-        // bytes32 assertionId = _umaOracle.assertTruth(
-        //     abi.encodePacked(
-        //         "Promise contract is claiming that statement ",
-        //         promises[promiseId].statement,
-        //         " had occurred as of ",
-        //         ClaimData.toUtf8BytesUint(block.timestamp),
-        //         "."
-        //     ),
-        //     msg.sender,
-        //     address(this),
-        //     address(0), // No sovereign security.
-        //     assertionLiveness,
-        //     defaultCurrency,
-        //     bond,
-        //     defaultIdentifier,
-        //     bytes32(0) // No domain.
-        // );
+        uint256 bond = _umaOracle.getMinimumBond(address(_defaultCurrency));
+        _savingsDai.withdraw(bond, address(this), address(this));
+        _defaultCurrency.forceApprove(address(_umaOracle), bond);
 
-        // assertedPromises[assertionId] = promiseId;
-        // emit PromiseAssertionRequested(promiseId, assertionId);
-        // return assertionId;
+        bytes32 assertionId = _umaOracle.assertTruth(
+            claim,
+            address(this),
+            address(this),
+            address(0),
+            1 days, // TODO: better period?
+            _defaultCurrency,
+            bond,
+            _umaOracle.defaultIdentifier(),
+            bytes32(0)
+        );
+
+        _tranches[assertionId] = Tranche({
+            projectId: id,
+            amount: amount,
+            claim: claim,
+            claimed: false
+        });
+
+        emit TrancheRequested(assertionId, id, amount, claim);
     }
 
     function assertionResolvedCallback(
-        bytes32 /* assertionId */,
-        bool /* assertedTruthfully */
+        bytes32 assertionId,
+        bool assertedTruthfully
     ) onlyUmaOracle external {
-        // bytes32 promiseId = assertedPromises[assertionId];
-        // Promise memory p = promises[promiseId];
-        // p.fullfilled = assertedTruthfully;
-        // p.asserted = true;
-        // emit PromiseAsserted(promiseId, p.promisor, p.fullfilled);
-        // delete assertedPromises[assertionId];
+        Tranche storage tranche = _tranches[assertionId];
+        require(tranche.amount > 0, "Tranche must exist");
+        Project storage project = _projects[tranche.projectId];
+        require(project.id == tranche.projectId, "Project must exist");
+
+        project.totalFundingAllocated += tranche.amount;
+        if (project.totalFundingAllocated == project.totalFundingRequired) {
+            _completeProject(project);
+        }
+
+        tranche.amount = 0;
+        tranche.claimed = true;
+
+        if (assertedTruthfully) {
+            // sending the funds: sDai -> Dai
+            _savingsDai.withdraw(tranche.amount, address(this), project.creator);
+            emit TrancheClaimed(assertionId, tranche.projectId, tranche.amount);
+        } else {
+            emit TrancheFailed(assertionId, tranche.projectId, tranche.amount);
+        }
     }
 
     // If assertion is disputed, do nothing and wait for resolution.
@@ -196,5 +239,38 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         bytes32 /* assertionId */
     ) onlyUmaOracle external {
         // TODO: emit event and do some fancy logic with xmtp/pushes?
+    }
+
+    function _startProject(Project storage project) internal {
+        for (uint256 i = 0; i < project.funders.length; i++) {
+            address funder = project.funders[i];
+            uint256 amount = _fundings[funder][project.id];
+            if (amount > 0) { // will be 0 for creator
+                _defaultCurrency.transferFrom(funder, address(this), amount);
+            }
+        }
+        _savingsDai.deposit(project.totalFundingReceived, address(this));
+
+        // create safe
+        SafeProxy safe = _safeFactory.createProxyWithNonce(
+            _safeSingleton,
+            abi.encodeWithSignature(
+                "setup(address[],uint256,address,bytes,address,address,uint256,address)",
+                project.funders,
+                project.funders.length - 1
+            ),
+            1337
+        );
+        project.safe = address(safe);
+        project.state = ProjectState.Started;
+
+        emit ProjectStarted(project.id);
+    }
+
+    function _completeProject(Project storage project) internal {
+        // TODO: collect sDAI interest
+
+        project.state = ProjectState.Completed;
+        emit ProjectCompleted(project.id);
     }
 }

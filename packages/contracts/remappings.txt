@@ -5,3 +5,4 @@ forge-std/=lib/forge-std/src/
 @sdai/=lib/sdai/src/
 @spark-periphery/=lib/aave-v3-periphery/contracts/
 @spark-core/=lib/aave-v3-core/contracts/
+@safe/=lib/safe-contracts/contracts/
