@@ -22,3 +22,6 @@
 [submodule "packages/contracts/lib/safe-contracts"]
 	path = packages/contracts/lib/safe-contracts
 	url = https://github.com/safe-global/safe-contracts
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
