@@ -10,23 +10,17 @@
     "codegen": "wagmi generate"
   },
   "dependencies": {
-<<<<<<< HEAD
     "next": "13.5.4",
     "react": "^18",
-    "react-dom": "^18"
-=======
+    "react-dom": "^18",
     "@rainbow-me/rainbowkit": "^1.1.2",
     "@vitejs/plugin-react-swc": "^3.4.0",
     "clsx": "^2.0.0",
     "lokijs": "^1.5.12",
-    "next": "13.5.4",
     "pino-pretty": "^10.2.3",
-    "react": "^18",
-    "react-dom": "^18",
     "viem": "^1.16.5",
     "vite": "^4.4.11",
     "wagmi": "^1.4.3"
->>>>>>> bb8bf38 (baby steps in frontend)
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -35,11 +29,7 @@
     "@wagmi/cli": "^1.5.2",
     "eslint": "^8",
     "eslint-config-next": "13.5.4",
-<<<<<<< HEAD
     "typescript": "^5",
     "contracts": "*"
-=======
-    "typescript": "^5"
->>>>>>> bb8bf38 (baby steps in frontend)
   }
 }

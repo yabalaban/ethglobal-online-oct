@@ -18,7 +18,7 @@ export default async function Navbar() {
         </div>
         <div className="flex justify-end md:w-1/3">
           <Suspense>
-            <ConnectButton />;
+            <ConnectButton />
           </Suspense>
         </div>
       </div>
