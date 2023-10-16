@@ -16,7 +16,7 @@ interface CryptoVCEvents {
         uint256 amount
     );
 
-    event ProjectStarted(bytes32 indexed projectId);
+    event ProjectStarted(bytes32 indexed projectId, address indexed safe);
 
     event ProjectCompleted(bytes32 indexed projectId);
 

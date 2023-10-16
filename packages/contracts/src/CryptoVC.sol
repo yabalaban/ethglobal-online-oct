@@ -264,7 +264,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         project.safe = address(safe);
         project.state = ProjectState.Started;
 
-        emit ProjectStarted(project.id);
+        emit ProjectStarted(project.id, address(safe));
     }
 
     function _completeProject(Project storage project) internal {
