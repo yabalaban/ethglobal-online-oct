@@ -37,7 +37,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         address creator;
         uint256 ethCollateralDeposit;
         uint256 totalFundingRequired;
-        uint256 fundingAllocated;
+        uint256 totalFundingReceived;
+        uint256 totalFundtinAllocated;
         uint256 daiDeposit;
         ProjectState state;
         bytes cid;
@@ -107,7 +108,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
             creator: msg.sender,
             ethCollateralDeposit: msg.value,
             totalFundingRequired: fundingRequired,
-            fundingAllocated: 0,
+            totalFundtinAllocated: 0,
             daiDeposit: toBorrow,
             state: ProjectState.Created,
             cid: cid
@@ -117,15 +118,33 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
     }
 
     function fundProject(
-        bytes32 projectId,
+        bytes32 id,
         uint256 amount
     ) external {
-        // TODO: check project state etc
+        Project storage project = _projects[id];
+        require(project.id == id, "Project must exist");
+        require(project.state == ProjectState.Created, "Project must be in Created state");
+
+        require(_defaultCurrency.allowance(_msgSender(), address(this)) >= amount, "Must approve DAI first");
+
+        uint256 fundingLeftToMeet = project.totalFundingRequired - project.totalFundingReceived;
+        if (amount >= fundingLeftToMeet) {
+            amount = fundingLeftToMeet;
+            project.state = ProjectState.Funded;
+            // TODO: start project
+        }
+
+        project.totalFundingReceived += amount;
+
+        _defaultCurrency.transferFrom(_msgSender(), address(this), amount);
+        _savingsDai.deposit(amount, address(this));
+
         // TODO: add struct to hold funding requests
         // when we get enough funding, we can start the project
         // TODO: start project by creating safe with funders as owners
         // - transfer of funds into safe via DAI->sDAI
         // - transfer of bootstrap funds
+
         // - allow the creator to request funds by proposing a UMA tx to safe
         // - owners can vote on the tx
         // - the tx post asserting to UMA on behalf of the safe
