@@ -43,3 +43,7 @@ export async function store(contract: Contract): Promise<Address> {
 export async function load(cid: Address): Promise<Contract> {
   return (await storage.fetch(cid)) as Contract;
 }
+
+export function getMenu(): string[] {
+  return ['Projects', 'Portfolio'];
+}

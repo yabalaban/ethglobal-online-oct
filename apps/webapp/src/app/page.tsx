@@ -1,13 +1,15 @@
-import Navbar from '@/components/navbar';
+import Footer from '@/components/layout/footer';
+import Navbar from '@/components/layout/navbar';
 import clsx from 'clsx';
+import { Suspense } from 'react';
 
 export default function Home() {
   return (
     <>
       <Navbar />
-      <div className="absolute left-0 ml-4">
-        <LoadingDots className="mb-3 bg-white" />
-      </div>
+      <Suspense>
+        <Footer />
+      </Suspense>
     </>
   );
 }

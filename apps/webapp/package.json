@@ -10,14 +10,20 @@
     "codegen": "wagmi generate"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^1.1.2",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/typography": "^0.5.10",
+    "@vitejs/plugin-react-swc": "^3.4.0",
+    "autoprefixer": "^10.4.16",
+    "clsx": "^2.0.0",
+    "libs": "file:packages/libs",
+    "lokijs": "^1.5.12",
     "next": "13.5.4",
+    "pino-pretty": "^10.2.3",
+    "postcss": "^8.4.31",
     "react": "^18",
     "react-dom": "^18",
-    "@rainbow-me/rainbowkit": "^1.1.2",
-    "@vitejs/plugin-react-swc": "^3.4.0",
-    "clsx": "^2.0.0",
-    "lokijs": "^1.5.12",
-    "pino-pretty": "^10.2.3",
+    "tailwindcss": "^3.3.3",
     "viem": "^1.16.5",
     "vite": "^4.4.11",
     "wagmi": "^1.4.3"
@@ -27,9 +33,9 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@wagmi/cli": "^1.5.2",
+    "contracts": "*",
     "eslint": "^8",
     "eslint-config-next": "13.5.4",
-    "typescript": "^5",
-    "contracts": "*"
+    "typescript": "^5"
   }
 }

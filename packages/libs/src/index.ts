@@ -8,6 +8,10 @@ const provider = new providers.JsonRpcProvider('https://sepolia.gateway.tenderly
 const key = 'haha';
 const web3storagetoken = 'hehe';
 
+export function getMenu(): string[] {
+  return ['Companies', 'Portfolio'];
+}
+
 (async () => {
   // const wallet = new ethers.Wallet(key, provider);
   // await broadcastMessage(wallet, 'gm', ['0xb39d2DdeCcb7b91e4Efb26cc380E0b14FEE262a8']);
