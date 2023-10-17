@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "forge build",
-    "test": "forge test"
+    "test": "forge test",
+    "deploy": "forge script script/CryptoVC.s.sol:DeployScript --rpc-url=https://eth-goerli.public.blastapi.io --broadcast --verify -vvvv"
   },
   "author": "",
   "license": "ISC"

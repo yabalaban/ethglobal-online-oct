@@ -25,6 +25,7 @@ import {SafeProxy} from "@safe/proxies/SafeProxy.sol";
 
 // internals
 import {CryptoVCEvents} from "./CryptoVCEvents.sol";
+import {SharesToken} from "./SharesToken.sol";
 
 contract CryptoVC is CryptoVCEvents, ERC2771Context {
     using SafeERC20 for IERC20;
@@ -48,6 +49,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         bytes cid;
         address[] funders;
         address safe;
+        SharesToken shares;
+        uint256 distribution;
         // TODO: check if we need more states?
     }
 
@@ -59,7 +62,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
     }
 
     /// @dev The minimum value required to create a project.
-    uint256 public constant MIN_VALUE = 0.1 ether;
+    uint256 public constant MIN_VALUE = 0.00001 ether;
+    uint256 private constant _DEFAULT_SHARES = 1000;
 
     bytes32 private immutable _defaultIdentifier;
     IERC20 private immutable _defaultCurrency;
@@ -86,7 +90,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         IWrappedTokenGatewayV3 sparkETHGateway_,
         IPoolAddressesProvider sparkPoolAddressesProvider_,
         SafeProxyFactory safeFactory_,
-        address safeSignleton_,
+        address safeSingleton_,
         address trustredForwarder_
     )
         ERC2771Context(trustredForwarder_)
@@ -98,7 +102,7 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         _sparkETHGateway = sparkETHGateway_;
         _sparkPool = IPool(sparkPoolAddressesProvider_.getPool());
         _safeFactory = safeFactory_;
-        _safeSingleton = safeSignleton_;
+        _safeSingleton = safeSingleton_;
 
         _defaultCurrency.safeApprove(address(_savingsDai), type(uint256).max);
     }
@@ -129,6 +133,9 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         address[] memory funders = new address[](1);
         funders[0] = msg.sender;
 
+        SharesToken shares = new SharesToken(_DEFAULT_SHARES * (10 ** 18));
+        uint256 distribution = 0.3 * (10 ** 18);
+
         _projects[projectId] = Project({
             id: projectId,
             creator: msg.sender,
@@ -140,8 +147,13 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
             state: ProjectState.Created,
             cid: cid,
             funders: funders,
-            safe: address(0)
+            safe: address(0),
+            shares: shares,
+            distribution: distribution
         });
+
+        // send shares to creator
+        shares.transfer(msg.sender, _DEFAULT_SHARES * (10 ** 18) - (_DEFAULT_SHARES * distribution));
 
         emit ProjectCreated(projectId, msg.sender, msg.value, fundingRequired, cid);
     }
@@ -182,18 +194,24 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
         require(project.state == ProjectState.Started, "Project must be in Started state");
         require(project.safe == _msgSender(), "Only safe can request tranche");
 
-        uint256 bond = _umaOracle.getMinimumBond(address(_defaultCurrency));
-        _savingsDai.withdraw(bond, address(this), address(this));
-        _defaultCurrency.forceApprove(address(_umaOracle), bond);
+        uint256 bondAmount = _umaOracle.getMinimumBond(address(_defaultCurrency));
+        IERC20 bondCurrency = _defaultCurrency;
+        if (bondAmount == 0) { // for testnet 1 USDC goerli
+            bondAmount = 1 * (10 ** 6);
+            bondCurrency = IERC20(0x07865c6E87B9F70255377e024ace6630C1Eaa37F);
+        } else {
+            _savingsDai.withdraw(bondAmount, address(this), address(this));
+        }
+        bondCurrency.forceApprove(address(_umaOracle), bondAmount);
 
         bytes32 assertionId = _umaOracle.assertTruth(
             claim,
             address(this),
             address(this),
             address(0),
-            1 days, // TODO: better period?
-            _defaultCurrency,
-            bond,
+            1 minutes, // TODO: better period for mainnet?
+            bondCurrency,
+            bondAmount,
             _umaOracle.defaultIdentifier(),
             bytes32(0)
         );
@@ -222,16 +240,16 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
             _completeProject(project);
         }
 
-        tranche.amount = 0;
-        tranche.claimed = true;
-
         if (assertedTruthfully) {
             // sending the funds: sDai -> Dai
-            _savingsDai.withdraw(tranche.amount, address(this), project.creator);
+            _savingsDai.withdraw(tranche.amount, project.creator, address(this));
             emit TrancheClaimed(assertionId, tranche.projectId, tranche.amount);
         } else {
             emit TrancheFailed(assertionId, tranche.projectId, tranche.amount);
         }
+
+        tranche.amount = 0;
+        tranche.claimed = true;
     }
 
     // If assertion is disputed, do nothing and wait for resolution.
@@ -247,6 +265,8 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
             uint256 amount = _fundings[funder][project.id];
             if (amount > 0) { // will be 0 for creator
                 _defaultCurrency.transferFrom(funder, address(this), amount);
+                uint256 sharesAmount = _DEFAULT_SHARES * project.distribution * amount / project.totalFundingReceived;
+                project.shares.transfer(funder, sharesAmount);
             }
         }
         _savingsDai.deposit(project.totalFundingReceived, address(this));
@@ -257,9 +277,15 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
             abi.encodeWithSignature(
                 "setup(address[],uint256,address,bytes,address,address,uint256,address)",
                 project.funders,
-                project.funders.length - 1
+                project.funders.length - 1,
+                0x0000000000000000000000000000000000000000,
+                bytes(""),
+                0x0000000000000000000000000000000000000000,
+                0x0000000000000000000000000000000000000000,
+                0,
+                0x0000000000000000000000000000000000000000
             ),
-            1337
+            13371
         );
         project.safe = address(safe);
         project.state = ProjectState.Started;

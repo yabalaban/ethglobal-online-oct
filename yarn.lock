@@ -1730,9 +1730,9 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
 "@jridgewell/trace-mapping@^0.3.17", "@jridgewell/trace-mapping@^0.3.9":
-  version "0.3.19"
-  resolved "https://registry.yarnpkg.com/@jridgewell/trace-mapping/-/trace-mapping-0.3.19.tgz#f8a3249862f91be48d3127c3cfe992f79b4b8811"
-  integrity sha512-kf37QtfW+Hwx/buWGMPcR60iF9ziHa6r/CZJIHbmcm4+0qrXiVdxegAH0F6yddEVQ7zdkjcGCgCzUu+BcbhQxw==
+  version "0.3.20"
+  resolved "https://registry.yarnpkg.com/@jridgewell/trace-mapping/-/trace-mapping-0.3.20.tgz#72e45707cf240fa6b081d0366f8265b0cd10197f"
+  integrity sha512-R8LcPeWZol2zR8mmH3JeKQ6QRCFb7XgUhV9ZlGhHLGyg4wpPiPZNQOOWhFZhxKw8u//yTbNGI42Bx/3paXEQ+Q==
   dependencies:
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
@@ -7108,18 +7108,6 @@ libp2p-crypto@^0.21.0, libp2p-crypto@^0.21.2:
     node-forge "^1.2.1"
     protobufjs "^6.11.2"
     uint8arrays "^3.0.0"
-
-"libs@file:packages/libs":
-  version "1.0.0"
-  dependencies:
-    "@apollo/client" "^3.8.5"
-    "@pushprotocol/restapi" "^1.4.23"
-    "@web-std/file" "^3.0.3"
-    "@xmtp/xmtp-js" "^11.1.1"
-    ethers "^5.7"
-    graphql "^16.8.1"
-    viem "^1.16.5"
-    web3.storage "^4.5.5"
 
 lilconfig@^2.0.5, lilconfig@^2.1.0:
   version "2.1.0"

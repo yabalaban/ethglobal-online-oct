@@ -33,7 +33,7 @@ export const cryptoVcABI = [
         type: 'address',
       },
       { name: 'safeFactory_', internalType: 'contract SafeProxyFactory', type: 'address' },
-      { name: 'safeSignleton_', internalType: 'address', type: 'address' },
+      { name: 'safeSingleton_', internalType: 'address', type: 'address' },
       { name: 'trustredForwarder_', internalType: 'address', type: 'address' },
     ],
   },
@@ -68,7 +68,10 @@ export const cryptoVcABI = [
   {
     type: 'event',
     anonymous: false,
-    inputs: [{ name: 'projectId', internalType: 'bytes32', type: 'bytes32', indexed: true }],
+    inputs: [
+      { name: 'projectId', internalType: 'bytes32', type: 'bytes32', indexed: true },
+      { name: 'safe', internalType: 'address', type: 'address', indexed: true },
+    ],
     name: 'ProjectStarted',
   },
   {

@@ -2,15 +2,13 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+optimizer = true
+optimizer-runs = 1_000_000
 
 [rpc_endpoints]
-base-goerli = "https://goerli.base.org"
+goerli = "https://eth-goerli.public.blastapi.io"
 sepolia = "https://eth-sepolia.public.blastapi.io"
-optimism = "https://mainnet.optimism.io"
-base = "https://mainnet.base.org"
 
 [etherscan]
-base-goerli = { key = "${BASESCAN_API_KEY}", chain = "base-goerli" }
+goerli = { key = "${ETHERSCAN_API_KEY}", chain = "goerli" }
 sepolia = { key = "${ETHERSCAN_API_KEY}", chain = "sepolia" }
-optimism = { key = "${OPTIMISMSCAN_API_KEY}", chain = "optimism" }
-base = { key = "${BASESCAN_API_KEY}", chain = "base" }
