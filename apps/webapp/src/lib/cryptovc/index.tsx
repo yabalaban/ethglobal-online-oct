@@ -56,7 +56,7 @@ function makePerson(): Person {
   return {
     address: faker.finance.ethereumAddress(),
     identities: [],
-    handle: faker.company.buzzNoun + '.eth',
+    handle: faker.company.buzzNoun() + '.eth',
     pic: faker.image.avatar(),
   };
 }
@@ -73,6 +73,8 @@ function makeCompany(creator: Person, investors: Person[]): Company {
     goal: getRandomFromRange(4, 10),
     progress: 2.4,
     investors: investors,
+    currency: 'ETH',
+    ipfs: '123',
   };
 }
 

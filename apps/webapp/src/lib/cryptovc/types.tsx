@@ -11,9 +11,13 @@ export type Company = {
   name: string;
   description: string;
   pic: string | null;
-  goal: number;
-  progress: number;
   investors: Person[];
+  // Progress
+  progress: number;
+  goal: number;
+  currency: string;
+  // Storage
+  ipfs: string;
 };
 
 export type Person = {

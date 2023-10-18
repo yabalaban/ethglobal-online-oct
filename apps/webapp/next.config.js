@@ -7,7 +7,12 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ['picsum.photos', 'loremflickr.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 };
 
