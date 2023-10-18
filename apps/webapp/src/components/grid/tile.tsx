@@ -15,7 +15,6 @@ export function CompanyGridTile({
     description: string;
   };
 } & React.ComponentProps<typeof Image>) {
-  console.log(props.src);
   return (
     <div
       className={clsx(

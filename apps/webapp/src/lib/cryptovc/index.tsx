@@ -2,11 +2,50 @@ import { Company, Menu, Person } from './types';
 import { fakerEN } from '@faker-js/faker';
 
 export function getMenu(): Menu[] {
+  // Companies is always active.
+  // Portfolio tab is active whenever wallet is associated with
+  // any company (both as creator or investor).
   return [
-    { title: 'Companies', path: 'kek', enabled: true },
-    { title: 'Portfolio', path: 'lol', enabled: false },
+    { title: 'Companies', path: '/', enabled: true },
+    { title: 'Portfolio', path: '/portfolio', enabled: true },
+    { title: 'Create Company', path: '/company/create', enabled: true },
   ];
 }
+
+class MockData {
+  creatorA: Person;
+  investorA1: Person;
+  investorA2: Person;
+  investorA3: Person;
+  companyA: Company;
+  creatorB: Person;
+  companyB: Company;
+  creatorC: Person;
+  investorC1: Person;
+  companyC: Company;
+  companies: Record<string, Company>;
+
+  constructor() {
+    this.creatorA = makePerson();
+    this.investorA1 = makePerson();
+    this.investorA2 = makePerson();
+    this.investorA3 = makePerson();
+    this.companyA = makeCompany(this.creatorA, [this.investorA1, this.investorA2, this.investorA3]);
+
+    this.creatorB = makePerson();
+    this.companyB = makeCompany(this.creatorB, []);
+
+    this.creatorC = makePerson();
+    this.investorC1 = makePerson();
+    this.companyC = makeCompany(this.creatorC, [this.investorC1, mock.creatorA]);
+
+    this.companies = {};
+    this.companies[this.companyA.id] = this.companyA;
+    this.companies[this.companyB.id] = this.companyB;
+    this.companies[this.companyC.id] = this.companyC;
+  }
+}
+export const mock = new MockData();
 
 function getRandomFromRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
@@ -25,10 +64,11 @@ function makePerson(): Person {
 function makeCompany(creator: Person, investors: Person[]): Company {
   const faker = fakerEN;
   return {
+    id: faker.finance.creditCardNumber(),
     creator: creator,
     path: '',
     name: faker.company.catchPhraseNoun(),
-    description: faker.company.buzzPhrase(),
+    description: faker.lorem.paragraphs(),
     pic: faker.image.url(),
     goal: getRandomFromRange(4, 10) + ' ETH',
     progress: '0%',
@@ -36,19 +76,24 @@ function makeCompany(creator: Person, investors: Person[]): Company {
   };
 }
 
-export function getCompanies(): Company[] {
-  const creatorA = makePerson();
-  const investorA1 = makePerson();
-  const investorA2 = makePerson();
-  const investorA3 = makePerson();
-  const companyA = makeCompany(creatorA, [investorA1, investorA2, investorA3]);
+export async function getCompany(id: string): Promise<Company | null> {
+  return mock.companies[id];
+}
 
-  const creatorB = makePerson();
-  const companyB = makeCompany(creatorB, []);
+export async function getViewer(): Promise<Person> {
+  return mock.creatorA;
+}
 
-  const creatorC = makePerson();
-  const investorC1 = makePerson();
-  const companyC = makeCompany(creatorC, [investorC1]);
-
-  return [companyA, companyB, companyC];
+export async function getCompanies(): Promise<Company[]> {
+  return [
+    mock.companyA,
+    mock.companyB,
+    mock.companyC,
+    mock.companyA,
+    mock.companyB,
+    mock.companyC,
+    mock.companyA,
+    mock.companyB,
+    mock.companyC,
+  ];
 }

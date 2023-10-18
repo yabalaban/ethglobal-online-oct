@@ -5,6 +5,7 @@ export type Menu = {
 };
 
 export type Company = {
+  id: string;
   creator: Person;
   path: string;
   name: string;

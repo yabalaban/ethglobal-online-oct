@@ -9,8 +9,8 @@ export default function CompanyGridItems({ companies }: { companies: Company[] }
   return (
     <>
       {companies.map((company) => (
-        <Grid.Item key={company.path} className="animate-fadeIn">
-          <Link className="relative inline-block h-full w-full" href={`/product/${company.path}`}>
+        <Grid.Item key={company.id} className="animate-fadeIn">
+          <Link className="relative inline-block h-full w-full" href={`/company/${company.id}`}>
             <CompanyGridTile
               alt={company.name}
               src={company.pic as string}
@@ -39,15 +39,12 @@ export async function CompanyGrid() {
   return (
     <>
       <div className="mx-auto flex max-w-screen-2xl flex-col gap-8 px-4 pb-4 text-black dark:text-white md:flex-row">
-        <div className="order-last min-h-screen w-full md:order-none">
-          {' '}
-          <div className="order-last min-h-screen w-full md:order-none">
-            {companies.length > 0 ? (
-              <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                <CompanyGridItems companies={companies} />
-              </Grid>
-            ) : null}
-          </div>
+        <div className="order-last w-full md:order-none">
+          {companies.length > 0 ? (
+            <Grid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <CompanyGridItems companies={companies} />
+            </Grid>
+          ) : null}
         </div>
         <div className="order-none flex-none md:order-last md:w-[125px]">
           <FilterList list={filters} title="Sort by" />
