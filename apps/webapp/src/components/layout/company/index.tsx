@@ -19,7 +19,7 @@ export function CompanyCard({ company }: { company: Company }) {
             <CompanyImage image={image} />
             <CompanyDescription company={company} />
           </div>
-          <div className="basis-full lg:basis-2/6 md:p-12">
+          <div className="basis-full lg:basis-2/6 md:x-2">
             <CompanyActions company={company} viewer={mock.creatorA} />
           </div>
         </div>

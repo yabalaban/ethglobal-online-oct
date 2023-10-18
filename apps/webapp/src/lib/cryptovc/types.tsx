@@ -11,8 +11,8 @@ export type Company = {
   name: string;
   description: string;
   pic: string | null;
-  goal: string;
-  progress: string;
+  goal: number;
+  progress: number;
   investors: Person[];
 };
 

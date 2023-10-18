@@ -1,5 +1,5 @@
 import { CompanyCard } from '@/components/layout/company';
-import { getCompany } from '@/lib/cryptovc';
+import { getCompany, mock } from '@/lib/cryptovc';
 import { notFound } from 'next/navigation';
 
 export default async function CompanyPage({ params }: { params: { id: string } }) {

@@ -37,7 +37,7 @@ class MockData {
 
     this.creatorC = makePerson();
     this.investorC1 = makePerson();
-    this.companyC = makeCompany(this.creatorC, [this.investorC1, mock.creatorA]);
+    this.companyC = makeCompany(this.creatorC, [this.investorC1, this.creatorA]);
 
     this.companies = {};
     this.companies[this.companyA.id] = this.companyA;
@@ -48,7 +48,7 @@ class MockData {
 export const mock = new MockData();
 
 function getRandomFromRange(min: number, max: number): number {
-  return Math.random() * (max - min) + min;
+  return Math.trunc(Math.random() * (max - min) + min);
 }
 
 function makePerson(): Person {
@@ -70,14 +70,22 @@ function makeCompany(creator: Person, investors: Person[]): Company {
     name: faker.company.catchPhraseNoun(),
     description: faker.lorem.paragraphs(),
     pic: faker.image.url(),
-    goal: getRandomFromRange(4, 10) + ' ETH',
-    progress: '0%',
+    goal: getRandomFromRange(4, 10),
+    progress: 2.4,
     investors: investors,
   };
 }
 
 export async function getCompany(id: string): Promise<Company | null> {
-  return mock.companies[id];
+  if (mock.companyA.id == id) {
+    return mock.companyA;
+  } else if (mock.companyB.id == id) {
+    return mock.companyB;
+  } else if (mock.companyC.id == id) {
+    return mock.companyC;
+  } else {
+    return mock.companyA;
+  }
 }
 
 export async function getViewer(): Promise<Person> {

@@ -16,7 +16,7 @@ export default function CompanyGridItems({ companies }: { companies: Company[] }
               src={company.pic as string}
               company={{
                 title: company.name as string,
-                description: company.description as string,
+                description: company.id as string,
               }}
               fill
               sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
