@@ -1,10 +1,11 @@
 'use client';
-import { CompanyGrid } from '@/components/grid';
+
+import CompaniesPage from './companies/page';
 
 export default function Home() {
   return (
     <>
-      <CompanyGrid />
+      <CompaniesPage />
     </>
   );
 }

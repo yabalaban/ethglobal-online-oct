@@ -39,20 +39,27 @@ function Info({ info }: { info: { name: string; description: string } }) {
 
 // Progress
 
-function ProgressLabel({
+export function ProgressLabel({
   progress,
+  compact,
 }: {
   progress: { actual: number; goal: number; currency: string };
+  compact: boolean;
 }) {
   return (
-    <div className="flex flex-row lg:gap-1 items-baseline pb-4">
+    <div className={clsx('flex flex-row lg:gap-1 items-baseline', { 'pb-4': !compact })}>
       <div>
-        <p className="text-4xl font-medium">
+        <p className={clsx('font-medium', { 'text-4xl': !compact, 'text-sm': compact })}>
           {progress.actual} {progress.currency}
         </p>
       </div>
       <div>
-        <p className="text-xl font-light dark:text-white/[80%]">
+        <p
+          className={clsx('font-light dark:text-white/[80%]', {
+            'text-xl': !compact,
+            'text-sm': compact,
+          })}
+        >
           raised of {progress.goal} {progress.currency}
         </p>
       </div>
@@ -101,7 +108,7 @@ function Progress({
   const ratio = Math.trunc((progress.actual / progress.goal) * 100);
   return (
     <div className="py-4">
-      <ProgressLabel progress={progress} />
+      <ProgressLabel progress={progress} compact={false} />
       <ProgressBar ratio={ratio} />
       <ProgressInfo investors={progress.investors} />
     </div>
