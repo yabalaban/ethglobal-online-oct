@@ -2,9 +2,10 @@
 
 import { Company, Person } from '@/lib/cryptovc/types';
 import clsx from 'clsx';
-import React from 'react';
+import React, { useState } from 'react';
+import { ipfsStorage } from 'libs';
 
-// Company details
+// Company detailsss
 
 function Name({ name }: { name: string }) {
   return (
@@ -286,6 +287,134 @@ export function Card({ company }: { company: Company }) {
           <Section component={<Info info={info} />} />
           <Section component={<Progress progress={progress} />} />
           <Actions context={context} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Input({
+  prefill,
+  formData,
+  onChange,
+}: {
+  prefill: { name: string; description: string };
+  formData: any;
+  onChange: any;
+}) {
+  return (
+    <>
+      <div className="w-full p-4">
+        <div className="py-4">
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+            placeholder={prefill.name}
+            onChange={onChange}
+          />
+        </div>
+        <div className="py-4">
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Description
+          </label>
+          <textarea
+            id="description"
+            rows={4}
+            className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+            defaultValue={formData.description}
+            onChange={onChange}
+          />
+        </div>
+        <div className="py-4">
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Goal
+          </label>
+          <div className="flex justify-self-center align-center flex-row lg:flex-row lg:gap-2">
+            <div className="w-20">
+              <input
+                type="number"
+                id="goal"
+                className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-300 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+                onChange={onChange}
+                placeholder={formData.goal}
+              />
+            </div>
+            <div className="grow self-center text-xl">DAI</div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CreateAction() {
+  return (
+    <div className="w-full p-4">
+      <button
+        type="submit"
+        className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+      >
+        Create
+      </button>
+    </div>
+  );
+}
+
+export function NewCard({
+  prefill,
+}: {
+  prefill: { pic: string; name: string; description: string };
+}) {
+  const [formData, setFormData] = useState({
+    name: prefill.name,
+    description: prefill.description,
+    goal: '1000',
+  });
+
+  const onChange = (e: any) => {
+    const fieldName = e.target.name;
+    const fieldValue = e.target.value;
+
+    setFormData((prevState) => ({
+      ...prevState,
+      [fieldName]: fieldValue,
+    }));
+  };
+
+  const onSubmit = async (e: any) => {
+    e.preventDefault();
+
+    const data = new FormData();
+
+    // Turn our formData state into data we can use with a form submission
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+
+    const projectDetails = {
+      ...formData,
+      ['pic']: prefill.pic,
+    };
+    const cid = await ipfsStorage.store(projectDetails);
+    console.log('store to ipfs');
+    console.log(formData);
+    console.log(cid);
+  };
+
+  return (
+    <>
+      <div className="bg-white dark:border-neutral-900 shadow-xl dark:bg-neutral-800 rounded-lg border border-neutral-200 h-full w-full pb-4">
+        <div className="flex flex-col lg:flex-col items-center justify-center px-8 py-4">
+          <form className="w-full" onSubmit={onSubmit}>
+            <Section
+              component={<Input prefill={prefill} formData={formData} onChange={onChange} />}
+            />
+            <CreateAction />
+          </form>
         </div>
       </div>
     </>

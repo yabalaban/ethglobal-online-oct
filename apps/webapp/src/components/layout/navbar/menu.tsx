@@ -18,6 +18,8 @@ function MenuItem({ item }: { item: Menu }) {
           'dark:text-neutral-600': !item.enabled,
           'dark:text-neutral-300': active,
         })}
+        data-modal-target="defaultModal"
+        data-modal-toggle="defaultModal"
       >
         {item.title}
       </DynamicTag>

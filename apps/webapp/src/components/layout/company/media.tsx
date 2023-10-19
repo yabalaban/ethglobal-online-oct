@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 
-function CompanyPic({ pic }: { pic: { src: string; alt: string } }) {
+export function CompanyPic({ pic }: { pic: { src: string; alt: string } }) {
   return (
     <>
       <div className="bg-white dark:border-neutral-800 dark:bg-black rounded-lg border border-neutral-200 shadow-xl truncate">
@@ -85,15 +85,15 @@ function ProfileLinks({
   );
 }
 
-function Creator({ company }: { company: Company }) {
-  const creator = company.creator;
+function Creator({ info }: { info: { ipfs: string; creator: Person } }) {
+  const creator = info.creator;
   const avatar = {
     src: creator.pic,
     alt: creator.handle ? creator.handle : creator.address,
   };
   const links = {
     eth: creator.handle ? creator.handle : creator.address,
-    ipfs: company.ipfs,
+    ipfs: info.ipfs,
     twitter: 'somecurioustest', // get from creator.identities
   };
   return (
@@ -109,16 +109,24 @@ function Creator({ company }: { company: Company }) {
   );
 }
 
-export function Media({ company }: { company: Company }) {
-  const pic = {
-    src: company.pic as string,
-    alt: company.description,
+export function Media({
+  pic,
+  info,
+}: {
+  pic: {
+    src: string;
+    alt: string;
   };
+  info: {
+    ipfs: string;
+    creator: Person;
+  };
+}) {
   return (
     <>
       <div className="flex flex-col lg:gap-4">
         <CompanyPic pic={pic} />
-        <Creator company={company} />
+        <Creator info={info} />
       </div>
     </>
   );
