@@ -1,0 +1,42 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: CryptoVC
+    network: goerli
+    source:
+      address: "0x662806c86678dd086bb6b2f37a18ff6ece94b28c"
+      abi: CryptoVC
+      startBlock: 9895347
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ProjectCompleted
+        - ProjectCreated
+        - ProjectFunded
+        - ProjectStarted
+        - TrancheClaimed
+        - TrancheFailed
+        - TrancheRequested
+      abis:
+        - name: CryptoVC
+          file: ./abis/CryptoVC.json
+      eventHandlers:
+        - event: ProjectCompleted(indexed bytes32)
+          handler: handleProjectCompleted
+        - event: ProjectCreated(indexed bytes32,indexed address,uint256,uint256,bytes)
+          handler: handleProjectCreated
+        - event: ProjectFunded(indexed bytes32,indexed address,uint256)
+          handler: handleProjectFunded
+        - event: ProjectStarted(indexed bytes32,indexed address)
+          handler: handleProjectStarted
+        - event: TrancheClaimed(indexed bytes32,indexed bytes32,uint256)
+          handler: handleTrancheClaimed
+        - event: TrancheFailed(indexed bytes32,indexed bytes32,uint256)
+          handler: handleTrancheFailed
+        - event: TrancheRequested(indexed bytes32,indexed bytes32,uint256,bytes)
+          handler: handleTrancheRequested
+      file: ./src/crypto-vc.ts

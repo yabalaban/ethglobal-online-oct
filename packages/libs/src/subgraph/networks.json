@@ -1,0 +1,8 @@
+{
+  "goerli": {
+    "CryptoVC": {
+      "address": "0x662806c86678dd086bb6b2f37a18ff6ece94b28c",
+      "startBlock": 9895347
+    }
+  }
+}
