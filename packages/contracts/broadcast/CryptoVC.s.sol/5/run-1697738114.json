@@ -40,7 +40,7 @@
       "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
       "cumulativeGasUsed": "0x493035",
       "gasUsed": "0x38faea",
-      "contractAddress": "0x662806c86678Dd086BB6b2f37A18fF6ecE94b28C",
+      "contractAddress": null,
       "logs": [
         {
           "address": "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
@@ -67,7 +67,7 @@
   "libraries": [],
   "pending": [],
   "returns": {},
-  "timestamp": 1697738142,
+  "timestamp": 1697738114,
   "chain": 5,
   "multi": false,
   "commit": "3d70be9"

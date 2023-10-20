@@ -17,7 +17,7 @@ contract DeployScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        CryptoVC vc = new CryptoVC{salt: bytes32(uint256(2))}(
+        CryptoVC vc = new CryptoVC{salt: bytes32(uint256(1337))}(
             IERC20(0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844), // goerli dai
             OptimisticOracleV3Interface(0x9923D42eF695B5dd9911D05Ac944d4cAca3c4EAB), // uma goerli
             ISavingsDai(0xD8134205b0328F5676aaeFb3B2a0DC15f4029d8C), // spark savings dai goerli
