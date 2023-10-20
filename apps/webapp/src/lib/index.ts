@@ -20,11 +20,12 @@ export class GlobalState {
   static promises: Record<Address, UmaPromise> = {};
 
   async prepare() {
+    console.log('prepare()');
     const [created, started, completed] = await GetCompanies();
     created.forEach(this.processCreatedCompany);
     started.forEach(this.processStartedCompany);
     completed.forEach(this.processCompletedCompany);
-    Promise.all(Object.values(GlobalState.companies).map((c) => this.loadCompanyDetails(c)));
+    await Promise.all(Object.values(GlobalState.companies).map((c) => this.loadCompanyDetails(c)));
 
     const [requested, claimed, failed] = await GetPromises();
     requested.forEach(this.processRequestedPromise);
@@ -33,7 +34,8 @@ export class GlobalState {
 
     const investments = await GetInvestments();
     investments.forEach(this.processInvestment);
-    Promise.all(Object.values(GlobalState.people).map(this.loadPersonIdentities));
+    await Promise.all(Object.values(GlobalState.people).map(this.loadPersonIdentities));
+    console.log('prepare() done');
   }
 
   private processCreatedCompany(company: ProjectCreated) {

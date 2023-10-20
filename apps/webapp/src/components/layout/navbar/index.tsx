@@ -98,7 +98,7 @@ export default function Navbar() {
           <Menu items={menu} />
         </div>
         <div className="md:ml-auto flex-row flex">
-          <Button onPress={() => onClickPropose()}>Propose</Button>
+          {/* <Button onPress={() => onClickPropose()}>Propose</Button> */}
           <ConnectButton />
         </div>
       </div>

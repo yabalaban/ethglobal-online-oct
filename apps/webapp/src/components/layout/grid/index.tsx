@@ -118,7 +118,6 @@ function FilterItem({ item }: { item: ListItem }) {
     <>
       <li className="mt-2 flex text-sm text-black dark:text-white">
         <DynamicTag
-          prefetch={false}
           href={createUrl(pathname, newParams)}
           className={clsx('w-full hover:underline hover:underline-offset-4', {
             'underline underline-offset-4': active,
@@ -152,13 +151,7 @@ export function FilterList({ list, title }: { list: ListItem[]; title?: string }
 
 export type Filters = { title: string; items: ListItem[] };
 export type ListItem = { title: string; path: string };
-export async function SortableGrid({
-  companies,
-  filters,
-}: {
-  companies: Company[];
-  filters: Filters;
-}) {
+export function SortableGrid({ companies, filters }: { companies: Company[]; filters: Filters }) {
   const searchParams = useSearchParams();
   if (searchParams.has('q')) {
     const query = searchParams.get('q');
