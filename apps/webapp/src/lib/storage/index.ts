@@ -37,5 +37,6 @@ export class IpfsStorage {
   }
 }
 
-const token = 'haha';
+const token =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDc3OUI0Q0M4QzU2NTlFODZjMjI5ODAzMzg3ODgxRGMyMTJjZGMwRjMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2OTE2OTkxNjU1ODIsIm5hbWUiOiJzdXBlcmhhY2sifQ._c2hTdpGOhLqKdszS_aTirSn8J5R99352bFbipkZKqo';
 export const ipfsStorage = new IpfsStorage(token);

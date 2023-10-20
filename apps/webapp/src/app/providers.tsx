@@ -5,14 +5,15 @@ import {
   getDefaultWallets,
   connectorsForWallets,
 } from '@rainbow-me/rainbowkit';
-import { argentWallet, trustWallet, ledgerWallet } from '@rainbow-me/rainbowkit/wallets';
+import { frameWallet, safeWallet } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, goerli } from 'viem/chains';
+import { goerli } from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { GlobalState, gs } from '@/lib';
+import { gs } from '@/lib';
+import { NextUIProvider } from '@nextui-org/react';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [mainnet, goerli, ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : [])],
+  [goerli, ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : [])],
   [publicProvider()],
 );
 
@@ -32,11 +33,7 @@ const connectors = connectorsForWallets([
   ...wallets,
   {
     groupName: 'Other',
-    wallets: [
-      argentWallet({ projectId, chains }),
-      trustWallet({ projectId, chains }),
-      ledgerWallet({ projectId, chains }),
-    ],
+    wallets: [safeWallet({ chains }), frameWallet({ projectId, chains })],
   },
 ]);
 
@@ -53,12 +50,10 @@ const wagmiConfig = createConfig({
 })();
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} appInfo={appInfo}>
-        {mounted && children}
+        <NextUIProvider>{children}</NextUIProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );

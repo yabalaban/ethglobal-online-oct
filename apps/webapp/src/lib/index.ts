@@ -150,7 +150,7 @@ export class GlobalState {
       }
       counter += 1;
       console.log('counter:', counter);
-      await cooldown;
+      await cooldown();
     }
     console.log('40 sec spinning, no company');
     return Object.values(GlobalState.companies)[0];
