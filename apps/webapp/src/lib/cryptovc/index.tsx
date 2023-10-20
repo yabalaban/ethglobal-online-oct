@@ -1,10 +1,9 @@
+import { Address } from 'viem';
+import { GlobalState, gs } from '..';
 import { Company, Menu, Person } from './types';
 import { fakerEN } from '@faker-js/faker';
 
 export function getMenu(): Menu[] {
-  // Companies is always active.
-  // Portfolio tab is active whenever wallet is associated with
-  // any company (both as creator or investor).
   return [
     { title: 'Companies', path: '/', enabled: true },
     { title: 'Portfolio', path: '/portfolio', enabled: true },
@@ -78,32 +77,15 @@ function makeCompany(creator: Person, investors: Person[]): Company {
   };
 }
 
-export async function getCompany(id: string): Promise<Company | null> {
-  if (mock.companyA.id == id) {
-    return mock.companyA;
-  } else if (mock.companyB.id == id) {
-    return mock.companyB;
-  } else if (mock.companyC.id == id) {
-    return mock.companyC;
-  } else {
-    return mock.companyA;
-  }
+export async function getCompany(id: Address): Promise<Company | null> {
+  console.log(GlobalState.companies);
+  return GlobalState.companies[id];
 }
 
 export async function getViewer(): Promise<Person> {
   return mock.creatorA;
 }
 
-export async function getCompanies(): Promise<Company[]> {
-  return [
-    mock.companyA,
-    mock.companyB,
-    mock.companyC,
-    mock.companyA,
-    mock.companyB,
-    mock.companyC,
-    mock.companyA,
-    mock.companyB,
-    mock.companyC,
-  ];
+export function getCompanies(): Company[] {
+  return Object.values(GlobalState.companies);
 }

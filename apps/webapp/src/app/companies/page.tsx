@@ -2,7 +2,7 @@ import { SortableGrid } from '@/components/layout/grid';
 import { getCompanies } from '@/lib/cryptovc';
 
 export default async function CompaniesPage() {
-  const companies = await getCompanies();
+  const companies = getCompanies();
   const filters = {
     title: 'Sort by',
     items: [

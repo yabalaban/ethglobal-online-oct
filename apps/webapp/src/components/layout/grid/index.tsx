@@ -1,12 +1,12 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Company } from '@/lib/cryptovc/types';
 import Image from 'next/image';
 
 import clsx from 'clsx';
 import Link from 'next/link';
 import { ProgressLabel } from '../company/card';
+import { Company } from '@/lib/types';
 
 function Grid(props: React.ComponentProps<'ul'>) {
   return (
@@ -28,10 +28,10 @@ Grid.Item = GridItem;
 
 function Label({ company }: { company: Company }) {
   const progress = {
-    goal: company.goal,
-    actual: company.progress,
-    currency: company.currency,
-    investors: company.investors,
+    goal: company.status.goal,
+    actual: company.status.investments.reduce((prev, inv) => prev + inv.amount, 0),
+    currency: 'DAI',
+    investors: Object.values(company.status.investments),
   };
   return (
     <div className={clsx('absolute bottom-0 left-0 flex w-full @container/label')}>
@@ -39,16 +39,16 @@ function Label({ company }: { company: Company }) {
         <div className="flex flex-row">
           <div className="flex flex-col p-4 lg:gap-1">
             <h3 className="text-xl mr-4 flex-grow pl-2 leading-none tracking-tight">
-              {company.name}
+              {company.details?.name}
             </h3>
             <div className="text-sm mr-4 flex-grow pl-2 leading-none text-neutral-200">
-              by {company.creator.handle ? company.creator.handle : company.creator.address}
+              by {company.creator.ens ?? company.creator.address}
             </div>
           </div>
           <div className="flex flex-col w-full p-4 lg:gap-1 pl-2">
             <div className="tracking-tight">
               <ProgressLabel progress={progress} compact={true} />
-              <div className="text-right">{company.investors.length} investors</div>
+              <div className="text-right">{progress.investors.length} investors</div>
             </div>
           </div>
         </div>
@@ -60,13 +60,13 @@ function Label({ company }: { company: Company }) {
 function CompanyGridTile({ company }: { company: Company }) {
   return (
     <div className="group flex h-full w-full items-center justify-center overflow-hidden rounded-lg border bg-white hover:border-blue-600 dark:bg-black border-neutral-200 dark:border-neutral-800">
-      {company.pic ? (
+      {company.details?.image ? (
         <Image
           className={clsx(
             'relative h-full w-full object-containtransition duration-300 ease-in-out group-hover:scale-105',
           )}
-          alt={company.name}
-          src={company.pic as string}
+          alt={company.details?.name ?? '<name>'}
+          src={company.details?.image ?? ''}
           fill
           sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
         />
@@ -79,8 +79,11 @@ function CompanyGridTile({ company }: { company: Company }) {
 function CompanyGridItem({ company }: { company: Company }) {
   return (
     <>
-      <Grid.Item key={company.id} className="animate-fadeIn rounded-lg truncate">
-        <Link className="relative inline-block h-full w-full" href={`/company/${company.id}`}>
+      <Grid.Item key={company.projectId} className="animate-fadeIn rounded-lg truncate">
+        <Link
+          className="relative inline-block h-full w-full"
+          href={`/company/${company.projectId}`}
+        >
           <CompanyGridTile company={company} />
         </Link>
       </Grid.Item>
@@ -161,13 +164,15 @@ export async function SortableGrid({
     const query = searchParams.get('q');
     if (query === 'progress') {
       companies = companies.sort(
-        (c1: Company, c2: Company) => c2.progress / c2.goal - c1.progress / c1.goal,
+        (c1: Company, c2: Company) =>
+          c2.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) / c2.status.goal -
+          c1.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) / c1.status.goal,
       );
     } else if (query === 'goal') {
-      companies = companies.sort((c1: Company, c2: Company) => c2.goal - c1.goal);
+      companies = companies.sort((c1: Company, c2: Company) => c2.status.goal - c1.status.goal);
     } else if (query === 'participation') {
       companies = companies.sort(
-        (c1: Company, c2: Company) => c2.investors.length - c1.investors.length,
+        (c1: Company, c2: Company) => c2.status.investments.length - c2.status.investments.length,
       );
     }
   }

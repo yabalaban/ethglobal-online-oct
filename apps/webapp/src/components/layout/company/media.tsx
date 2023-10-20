@@ -1,11 +1,11 @@
 'use client';
 
-import { Company, Person } from '@/lib/cryptovc/types';
-import clsx from 'clsx';
+import { Person } from '@/lib/types';
+import { fakerEN } from '@faker-js/faker';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export function CompanyPic({ pic }: { pic: { src: string; alt: string } }) {
+export function CompanyPic({ image }: { image: { src: string; alt: string } }) {
   return (
     <>
       <div className="bg-white dark:border-neutral-800 dark:bg-black rounded-lg border border-neutral-200 shadow-xl truncate">
@@ -15,8 +15,8 @@ export function CompanyPic({ pic }: { pic: { src: string; alt: string } }) {
               className="h-full w-full object-cover"
               fill
               sizes="(min-width: 1024px) 66vw, 100vw"
-              alt={pic.alt as string}
-              src={pic.src as string}
+              alt={image.alt as string}
+              src={image.src as string}
               priority={true}
             />
           }
@@ -46,7 +46,7 @@ function PersonInfo({ person }: { person: Person }) {
   return (
     <div className="self-center grow">
       <div className="flex flex-col lg:gap-1">
-        <a className="text-4xl text-neutral-100">{person.handle}</a>
+        <a className="text-4xl text-neutral-100">{person.ens}</a>
         <a className="text-sm text-neutral-300">{person.address}</a>
       </div>
     </div>
@@ -88,11 +88,11 @@ function ProfileLinks({
 function Creator({ info }: { info: { ipfs: string; creator: Person } }) {
   const creator = info.creator;
   const avatar = {
-    src: creator.pic,
-    alt: creator.handle ? creator.handle : creator.address,
+    src: creator.avatar ?? fakerEN.image.avatarGitHub(),
+    alt: creator.ens ?? creator.address,
   };
   const links = {
-    eth: creator.handle ? creator.handle : creator.address,
+    eth: creator.ens ?? creator.address,
     ipfs: info.ipfs,
     twitter: 'somecurioustest', // get from creator.identities
   };
@@ -110,10 +110,10 @@ function Creator({ info }: { info: { ipfs: string; creator: Person } }) {
 }
 
 export function Media({
-  pic,
+  image,
   info,
 }: {
-  pic: {
+  image: {
     src: string;
     alt: string;
   };
@@ -125,7 +125,7 @@ export function Media({
   return (
     <>
       <div className="flex flex-col lg:gap-4">
-        <CompanyPic pic={pic} />
+        <CompanyPic image={image} />
         <Creator info={info} />
       </div>
     </>

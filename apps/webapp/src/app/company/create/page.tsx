@@ -1,3 +1,5 @@
+'use client';
+
 import { NewPage } from '@/components/layout/company';
 
 export default async function CreateCompanyPage() {

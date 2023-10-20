@@ -9,6 +9,7 @@ import { argentWallet, trustWallet, ledgerWallet } from '@rainbow-me/rainbowkit/
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { mainnet, goerli } from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { GlobalState, gs } from '@/lib';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [mainnet, goerli, ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : [])],
@@ -45,6 +46,11 @@ const wagmiConfig = createConfig({
   publicClient,
   webSocketPublicClient,
 });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+(async () => {
+  await gs.prepare();
+})();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);

@@ -16,8 +16,12 @@ export class IpfsStorage {
     return toHex(cid);
   }
 
-  async fetch(cid: Address): Promise<any> {
-    const response = await this.client.get(fromHex(cid, 'string'));
+  async fetch(cid: Address): Promise<unknown> {
+    let response = await this.client.get(fromHex(cid, 'string'));
+    if (response.status == 422) {
+      const ccid = fromHex(cid, 'string') as Address;
+      response = await this.client.get(fromHex(ccid, 'string'));
+    }
     if (!response) {
       throw new Error(`${cid}: empty response`);
     }

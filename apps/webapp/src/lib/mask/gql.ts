@@ -1,7 +1,5 @@
+import { gql } from '@/__generated__/gql';
 import { ApolloClient, InMemoryCache } from '@apollo/client';
-
-import { gql } from '../__generated__/gql';
-import { FindOneIdentityQuery, IdentityRecord } from '../__generated__/graphql';
 
 const client = new ApolloClient({
   // staging URL for next.id
