@@ -86,7 +86,6 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
 export function Progress({ company }: { company: Company }) {
   const { address } = useAccount();
   if (!address) {
-    alert('hey');
     return <></>;
   }
 
