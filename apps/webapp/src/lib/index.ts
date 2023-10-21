@@ -155,12 +155,13 @@ export class GlobalState {
     let counter = 0;
     while (counter < 30) {
       const created = await GetCompany(cid);
+      console.log(created);
       if (created.length > 0) {
         const company = created[0];
         this.processCreatedCompany(company);
         const projectId = company.projectId.toString() as Address;
         this.companies[projectId].details = details;
-        this.loadPersonIdentities(this.companies[projectId].creator);
+        await this.loadPersonIdentities(this.companies[projectId].creator);
         return this.companies[projectId];
       }
       counter += 1;

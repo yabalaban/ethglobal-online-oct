@@ -27,12 +27,14 @@ const CompaniesStatusQuery = `query CompaniesQuery {
     }
 }`;
 
-const CompanyStatusQuery = `query CompanyQuery($cid: Address!) {{
-    projectCreateds(where : { cid: $cid}) {
+const CompanyStatusQuery = `query CompanyQuery($cid: Bytes) {
+    projectCreateds(where : { cid: $cid }) {
         projectId
         creator
         ethCollateralDeposit
         fundingRequired
+        cid
+    }
 }`;
 
 const InvestmentsQuery = `query InvestmentsQuery {

@@ -446,15 +446,15 @@ export function NewCard({
       goal: Number(data.get('goal')),
     };
     const cid = await ipfsStorage.store(details);
-    console.log([cid, BigInt(details.goal)]);
     try {
       const tx = await createProject({
         args: [cid, BigInt(parseInt(formData.goal))],
       });
       await publicClient.waitForTransactionReceipt(tx);
+      console.log(cid);
       const company = await globalState.fetchNewCompany(cid, details);
-      redirect(`/company/${company.projectId}`);
-    } catch {
+      window.location.replace(`/company/${company.projectId}`);
+    } catch (e) {
       console.log(e);
     }
     setLoading(false);
