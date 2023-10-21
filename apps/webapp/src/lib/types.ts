@@ -26,7 +26,7 @@ export type Company = {
 export type CompanyStatus = {
   completed: boolean;
   safe: Address;
-  goal: number;
+  goal: string;
   investments: Investment[];
   promise: UmaPromise | null;
 };
@@ -35,7 +35,7 @@ export type CompanyDetails = {
   name: string;
   description: string;
   image: string;
-  goal: number;
+  goal: string;
 };
 
 export interface Investment {

@@ -1,6 +1,6 @@
 'use client';
 
-import { Address, toHex } from 'viem';
+import { Address, formatEther, toHex } from 'viem';
 import { GetCompanies, GetCompany, GetInvestments, GetPromises } from './queries';
 import {
   ProjectCompleted,
@@ -63,7 +63,7 @@ export class GlobalState {
       status: {
         completed: false,
         safe: '0x0',
-        goal: Number(company.fundingRequired),
+        goal: formatEther(BigInt(company.fundingRequired.toString())),
         investments: [],
         promise: null,
       },
@@ -124,7 +124,7 @@ export class GlobalState {
     const companyId = toHex(investment.projectId);
     this.companies[companyId].status.investments.push({
       investor: this.people[funder],
-      amount: Number(investment.amount),
+      amount: Number(formatEther(BigInt(investment.amount.toString()))),
     });
   }
 

@@ -10,7 +10,6 @@ import { parseEther } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
-import { redirect } from 'next/navigation';
 import { Modal } from '@/components/modal';
 
 // Company detailsss
@@ -52,7 +51,7 @@ export function ProgressLabel({
   progress,
   compact,
 }: {
-  progress: { actual: number; goal: number; currency: string };
+  progress: { actual: number; goal: string; currency: string };
   compact: boolean;
 }) {
   return (
@@ -112,9 +111,9 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
 function Progress({
   progress,
 }: {
-  progress: { actual: number; goal: number; currency: string; investors: Person[] };
+  progress: { actual: number; goal: string; currency: string; investors: Person[] };
 }) {
-  const ratio = Math.trunc((progress.actual / progress.goal) * 100);
+  const ratio = Math.trunc((progress.actual / Number(progress.goal)) * 100);
   return (
     <div className="py-4">
       <ProgressLabel progress={progress} compact={false} />
@@ -504,15 +503,14 @@ export function NewCard({
       name: data.get('name') as string,
       description: data.get('description') as string,
       image: prefill.image,
-      goal: Number(data.get('goal')),
+      goal: data.get('goal') as string,
     };
     const cid = await ipfsStorage.store(details);
     try {
       const tx = await createProject({
-        args: [cid, BigInt(parseInt(formData.goal))],
+        args: [cid, BigInt(parseEther(formData.goal))],
       });
       await publicClient.waitForTransactionReceipt(tx);
-      console.log(cid);
       const company = await globalState.fetchNewCompany(cid, details);
       window.location.replace(`/company/${company.projectId}`);
     } catch (e) {
