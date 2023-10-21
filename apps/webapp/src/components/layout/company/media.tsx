@@ -47,7 +47,7 @@ function Avatar({ avatar }: { avatar: { src: string; alt: string } }) {
 function PersonInfo({ person }: { person: Person }) {
   return (
     <div className="self-center grow">
-      <div className="flex flex-col lg:gap-1">
+      <div className="flex flex-col lg:gap-2">
         <a className="text-4xl text-neutral-100">{person.ens}</a>
         <a className="text-sm text-neutral-300">{person.address}</a>
       </div>
@@ -67,8 +67,8 @@ function ProfileLink({ link }: { link: { title: string; path: string; icon: stri
   console.log(href);
 
   return (
-    <div className="hover:underline text-neutral-300">
-      <Link href={href} className="some classes" target="_blank">
+    <div className="hover:underline text-sm text-neutral-400">
+      <Link href={href} className="" target="_blank">
         {link.title}
       </Link>
     </div>
@@ -86,7 +86,9 @@ function ProfileLinks({
         <ProfileLink link={{ title: 'etherscan', path: links.address, icon: 'ether' }} />
         <ProfileLink link={{ title: 'ipfs', path: links.ipfs, icon: 'ipfs' }} />
         {links.twitter !== '' ? (
-          <ProfileLink link={{ title: 'twitter', path: links.twitter, icon: 'twitter' }} />
+          <ProfileLink
+            link={{ title: 'twitter', path: links.twitter as string, icon: 'twitter' }}
+          />
         ) : null}
       </div>
     </div>

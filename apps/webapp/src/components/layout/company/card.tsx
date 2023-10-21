@@ -83,16 +83,18 @@ function ProgressBar({ ratio }: { ratio: number }) {
   );
 }
 
-function ProgressInfo({ investors }: { investors: Person[] }) {
+function ProgressInfo({ progress }: { progress: { investors: Person[] } }) {
   return (
     <>
       <div className="grid justify-items-start w-full pt-2">
-        {investors.length > 0 ? (
+        {progress.investors.length > 0 ? (
           <div>
-            <div className="font-light text-sm">Funded by {investors.length} investors:</div>
+            <div className="font-light text-sm">
+              Funded by {progress.investors.length} investors:
+            </div>
             <div>
               <ul className="list-disc">
-                {investors.map((investor, i) => (
+                {progress.investors.map((investor, i) => (
                   <li className="font-light text-xs dark:text-white/[80%]" key={i}>
                     {investor.address}
                   </li>
@@ -108,17 +110,32 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
   );
 }
 
+function Promise({ context }: { context: { progress: { investors: Person[] } } }) {
+  console.log(context);
+  return (
+    <>
+      <div className="grid justify-items-start w-full pt-2">
+        <div>Become the first investor! 🚀🚀🚀</div>
+      </div>
+    </>
+  );
+}
+
 function Progress({
-  progress,
+  context,
 }: {
-  progress: { actual: number; goal: string; currency: string; investors: Person[] };
+  context: {
+    creator: boolean;
+    progress: { actual: number; goal: string; currency: string; investors: Person[] };
+  };
 }) {
+  const progress = context.progress;
   const ratio = Math.trunc((progress.actual / Number(progress.goal)) * 100);
   return (
     <div className="py-4">
       <ProgressLabel progress={progress} compact={false} />
       <ProgressBar ratio={ratio} />
-      <ProgressInfo investors={progress.investors} />
+      {!context.creator ? <ProgressInfo progress={progress} /> : null}
     </div>
   );
 }
@@ -347,6 +364,7 @@ export function Card({ company }: { company: Company }) {
     investor: investor,
     creator: creator,
     company: company,
+    progress: progress,
   };
 
   return (
@@ -354,7 +372,8 @@ export function Card({ company }: { company: Company }) {
       <div className="bg-white dark:border-neutral-900 shadow-xl dark:bg-neutral-800 rounded-lg border border-neutral-200 h-full w-full pb-4">
         <div className="flex flex-col lg:flex-col items-center justify-center px-8 py-4">
           <Section component={<Info info={info} />} />
-          <Section component={<Progress progress={progress} />} />
+          <Section component={<Progress context={context} />} />
+          {creator ? <Section component={<Promise context={context} />} /> : null}
           <Actions context={context} />
         </div>
       </div>

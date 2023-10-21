@@ -21,6 +21,7 @@ export class GlobalState {
   people: Record<Address, Person> = {};
   companies: Record<Address, Company> = {};
   promises: Record<Address, UmaPromise> = {};
+  private completed: Record<Address, boolean> = {};
   private prepared = false;
 
   async prepare() {
@@ -112,6 +113,7 @@ export class GlobalState {
   }
 
   private processInvestment(investment: ProjectFunded) {
+    console.log(investment);
     const funder = toHex(investment.funder);
     if (!this.people[funder]) {
       this.people[funder] = {
@@ -121,14 +123,17 @@ export class GlobalState {
         twitter: null,
       };
     }
-    const companyId = toHex(investment.projectId);
-    this.companies[companyId].status.investments.push({
+    const companyId = investment.projectId;
+    this.companies[companyId.toString() as Address].status.investments.push({
       investor: this.people[funder],
       amount: Number(formatEther(BigInt(investment.amount.toString()))),
     });
   }
 
   private async loadPersonIdentities(person: Person) {
+    if (this.completed[person.address]) {
+      return;
+    }
     const identity = await fetchIdentities(person.address.toLowerCase());
     console.log('identity', identity);
     if (!identity) {
@@ -149,6 +154,7 @@ export class GlobalState {
         person.twitter = i.identity.displayName;
       }
     }
+    this.completed[person.address] = true;
   }
 
   async fetchNewCompany(cid: Address, details: CompanyDetails): Promise<Company> {
