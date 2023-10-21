@@ -17,6 +17,7 @@ const CompaniesStatusQuery = `query CompaniesQuery {
         ethCollateralDeposit
         fundingRequired
         cid
+        blockNumber
     }
     projectStarteds {
         projectId

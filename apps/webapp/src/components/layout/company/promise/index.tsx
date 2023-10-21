@@ -41,7 +41,6 @@ function Title() {
 export function Goals({ context }: { context: ActionsContext }) {
   const { address } = useAccount();
   if (!address) {
-    alert('hey');
     return <></>;
   }
 

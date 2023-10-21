@@ -28,7 +28,9 @@ export class GlobalState {
     if (this.prepared) {
       return;
     }
-    const [created, started, completed] = await GetCompanies();
+    const results = await GetCompanies();
+    const [, started, completed] = results;
+    const created = results[0].sort((a, b) => a.blockNumber - b.blockNumber).slice(18);
     created.forEach((company) => this.processCreatedCompany(company));
     started.forEach((company) => this.processStartedCompany(company));
     completed.forEach((company) => this.processCompletedCompany(company));
@@ -74,11 +76,17 @@ export class GlobalState {
 
   private processStartedCompany(company: ProjectStarted) {
     const companyId = company.projectId.toString() as Address;
+    if (!this.companies[companyId]) {
+      return;
+    }
     this.companies[companyId].status.safe = company.safe.toString() as Address;
   }
 
   private processCompletedCompany(company: ProjectCompleted) {
     const companyId = company.projectId.toString() as Address;
+    if (!this.companies[companyId]) {
+      return;
+    }
     this.companies[companyId].status.completed = true;
   }
 
@@ -89,6 +97,10 @@ export class GlobalState {
 
   private processRequestedPromise(promise: TrancheRequested) {
     const promiseId = promise.trancheId.toString() as Address;
+    const companyId = promise.projectId.toString() as Address;
+    if (!this.companies[companyId]) {
+      return;
+    }
     this.promises[promiseId] = {
       id: promiseId,
       text: promise.claim.toString(),
@@ -96,24 +108,28 @@ export class GlobalState {
       claimed: false,
       failed: false,
     };
-    const companyId = promise.projectId.toString() as Address;
     this.companies[companyId].status.promises.push(this.promises[promiseId]);
   }
 
   private processClaimedPromise(promise: TrancheClaimed) {
     const promiseId = promise.trancheId.toString() as Address;
+    if (!this.promises[promiseId]) {
+      return;
+    }
     this.promises[promiseId].failed = false;
     this.promises[promiseId].claimed = true;
   }
 
   private processFailedPromise(promise: TrancheFailed) {
     const promiseId = promise.trancheId.toString() as Address;
+    if (!this.promises[promiseId]) {
+      return;
+    }
     this.promises[promiseId].failed = true;
     this.promises[promiseId].claimed = false;
   }
 
   private processInvestment(investment: ProjectFunded) {
-    console.log(investment);
     const funder = investment.funder.toString() as Address;
     if (!this.people[funder]) {
       this.people[funder] = {
@@ -123,8 +139,11 @@ export class GlobalState {
         twitter: null,
       };
     }
-    const companyId = investment.projectId;
-    this.companies[companyId.toString() as Address].status.investments.push({
+    const companyId = investment.projectId.toString() as Address;
+    if (!this.companies[companyId]) {
+      return;
+    }
+    this.companies[companyId].status.investments.push({
       investor: this.people[funder],
       amount: Number(formatEther(BigInt(investment.amount.toString()))),
     });
@@ -161,7 +180,6 @@ export class GlobalState {
     let counter = 0;
     while (counter < 30) {
       const created = await GetCompany(cid);
-      console.log(created);
       if (created.length > 0) {
         const company = created[0];
         this.processCreatedCompany(company);
@@ -171,10 +189,8 @@ export class GlobalState {
         return this.companies[projectId];
       }
       counter += 1;
-      console.log('counter:', counter);
       await cooldown();
     }
-    console.log('40 sec spinning, no company');
     return Object.values(this.companies)[0];
   }
 

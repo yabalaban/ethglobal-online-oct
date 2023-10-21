@@ -14,7 +14,6 @@ export function Actions({
 }) {
   const { address } = useAccount();
   if (!address) {
-    alert('hey');
     return <></>;
   }
   console.log(company);

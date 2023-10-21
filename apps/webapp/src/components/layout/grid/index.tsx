@@ -5,8 +5,7 @@ import Image from 'next/image';
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { Company, Investment, Person, UmaPromise } from '@/lib/types';
-import { ProgressLabel } from '../company/progress';
+import { Company, Investment } from '@/lib/types';
 import { getClaimed, getFunds } from '@/lib';
 
 function Grid(props: React.ComponentProps<'ul'>) {
@@ -85,15 +84,15 @@ function Label({ company }: { company: Company }) {
     <div className={clsx('absolute bottom-0 left-0 flex w-full @container/label')}>
       <div className="flex items-center w-full border bg-white/70 text-xs font-semibold text-black backdrop-blur-md dark:border-neutral-800 dark:bg-black/70 dark:text-white">
         <div className="flex flex-row w-full">
-          <div className="flex w-full flex-col p-4 lg:gap-1">
-            <h3 className="text-xl mr-4 flex-grow pl-2 leading-none tracking-tight">
+          <div className="flex w-full flex-col p-4 lg:gap-1 pr-0">
+            <h3 className="text-xl mr-4 flex-grow pl-2 leading-none tracking-tight break-words whitespace-normal">
               {company.details?.name}
             </h3>
             <div className="text-sm mr-4 flex-grow pl-2 leading-none text-neutral-200">
               by {company.creator.ens ?? company.creator.address}
             </div>
           </div>
-          <div className="flex shrink flex-col w-full p-4 lg:gap-1 pl-2 w-full self-right">
+          <div className="flex shrink flex-col p-4 lg:gap-1 pl-0 w-full self-right">
             <div className="tracking-tight">
               <div>
                 <CompactProgressLabel progress={progress} />
