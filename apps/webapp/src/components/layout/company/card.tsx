@@ -6,7 +6,7 @@ import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { useCryptoVcCreateProject, useCryptoVcFundProject } from '@/web3/contracts';
 import clsx from 'clsx';
 import React, { useState } from 'react';
-import { parseEther } from 'viem';
+import { getAddress, parseEther } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
@@ -164,8 +164,8 @@ function ViewerActions({ company }: { company: Company }) {
   const onInvest = async (value: string) => {
     try {
       const tx = await fundProject({ args: [company.projectId, parseEther(value)] });
-      setIsInvestModalOpen(false);
       await publicClient.waitForTransactionReceipt(tx);
+      setIsInvestModalOpen(false);
       // TODO: reload something?
     } catch (e: any) {
       console.log(e);
@@ -255,7 +255,7 @@ function CreatorActions({ company }: { company: Company }) {
       args: [company.projectId, parseEther(amount), toHex(assertion)],
     });
     const tx: MetaTransactionData = {
-      to: CRYPTO_VC_ADDRESS,
+      to: getAddress(CRYPTO_VC_ADDRESS),
       data,
       value: '0',
       operation: OperationType.Call,
@@ -264,7 +264,7 @@ function CreatorActions({ company }: { company: Company }) {
     try {
       const safe = await loadSafe({
         ethAdapter,
-        safeAddress: company.status.safe,
+        safeAddress: getAddress(company.status.safe),
       });
 
       await proposeSafeTransaction({
@@ -289,13 +289,15 @@ function CreatorActions({ company }: { company: Company }) {
 
   return (
     <div className="flex row lg:flex-row lg:gap-1">
-      <button
-        type="button"
-        className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        onClick={() => setIsPromiseModalOpen(true)}
-      >
-        Make Promise
-      </button>
+      {company.status?.safe !== '0x0' && (
+        <button
+          type="button"
+          className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+          onClick={() => setIsPromiseModalOpen(true)}
+        >
+          Request a tranche
+        </button>
+      )}
       <button
         type="button"
         className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"

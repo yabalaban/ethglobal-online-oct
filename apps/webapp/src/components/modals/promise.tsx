@@ -10,7 +10,7 @@ const PromiseModal = ({
 }) => {
   const [amount, setAmount] = useState('');
   const [assertion, setAssertion] = useState('');
-  const isDisabled = amount === '' && assertion === '';
+  const isDisabled = amount === '' || assertion === '';
 
   return (
     <Modal title="Post assertion to receive a tranche">
@@ -29,6 +29,9 @@ const PromiseModal = ({
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
         />
+        <p className="text-sm text-gray-500 mt-1">
+          You will be asked to sign a company Safe transaction to post UMA assertion
+        </p>
         <div className="flex gap-4">
           <button
             className={`bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 ${
