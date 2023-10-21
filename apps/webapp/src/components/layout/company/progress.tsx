@@ -1,6 +1,8 @@
-import { getClaimed, getFunds, isCreatorContext } from '@/lib';
+import { getClaimed, getFunds } from '@/lib';
 import { Company, Person } from '@/lib/types';
+import { etherscanLink } from '@/lib/utils';
 import clsx from 'clsx';
+import Link from 'next/link';
 import { useAccount } from 'wagmi';
 
 export function ProgressLabel({
@@ -60,12 +62,14 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
       <div className="grid justify-items-start w-full pt-2">
         {investors.length > 0 ? (
           <div>
-            <div className="font-light text-sm">Baked by:</div>
+            <div className="dark:text-white/[80%]">Baked by:</div>
             <div>
-              <ul className="list-disc">
+              <ul className="list-disc pl-4">
                 {investors.map((investor, i) => (
-                  <li className="font-light text-xs dark:text-white/[80%]" key={i}>
-                    {investor.address}
+                  <li className="font-light text-sm dark:text-white/[80%]" key={i}>
+                    <Link href={etherscanLink(investor.address)} className="" target="_blank">
+                      {investor.address}
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -46,7 +46,7 @@ export function Card({ company }: { company: Company }) {
           <Section component={<Details details={details} />} />
           <Section component={<Progress company={company} />} />
           {creator ? <Section component={<UmaPromise context={context} />} /> : null}
-          <Actions context={context} />
+          <Actions company={company} />
         </div>
       </div>
     </>

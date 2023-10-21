@@ -6,6 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
+import { etherscanLink } from '@/lib/utils';
+import { Address } from 'viem';
 
 export function CompanyPic({ image }: { image: { src: string; alt: string } }) {
   return (
@@ -60,7 +62,7 @@ function ProfileLink({ link }: { link: { title: string; path: string; icon: stri
   if (link.title === 'twitter') {
     href += 'https://twitter.com/' + link.path;
   } else if (link.title === 'etherscan') {
-    href += 'https://etherscan.io/address/' + link.path;
+    href += etherscanLink(link.path as Address);
   } else {
     href += 'https://ipfs.io/ipfs/' + link.path;
   }

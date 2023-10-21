@@ -13,7 +13,7 @@ const InvestModal = ({
 
   return (
     <Modal title="Invest">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 ">
         <input
           type="text"
           className="border bg-white border-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
