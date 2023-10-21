@@ -5,7 +5,13 @@ import { InvestorActions } from './investor';
 import { CreatorActions } from './creator';
 import { ViewerActions } from './viewer';
 
-export function Actions({ company }: { company: Company }) {
+export function Actions({
+  company,
+  onModifyAction,
+}: {
+  company: Company;
+  onModifyAction: () => void;
+}) {
   const { address } = useAccount();
   if (!address) {
     alert('hey');
@@ -27,6 +33,7 @@ export function Actions({ company }: { company: Company }) {
     company: company,
     funded: funded,
     completed: completed,
+    onModifyAction: onModifyAction,
   };
 
   return (

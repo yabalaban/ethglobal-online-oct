@@ -4,4 +4,5 @@ export interface ActionsContext {
   company: Company;
   funded: boolean;
   completed: boolean;
+  onModifyAction: any;
 }

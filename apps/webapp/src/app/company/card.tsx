@@ -15,7 +15,10 @@ import { Actions } from '@/components/layout/company/actions';
 import { Section } from '@/components/layout/section';
 import { UmaPromise } from '@/components/layout/company/promise';
 
-export function Card({ company }: { company: Company }) {
+export function Card({ company_ }: { company_: Company }) {
+  const [company, setCompany] = useState(company_);
+  const [globalState] = useAtom(globalStateAtom);
+
   const { address } = useAccount();
   const creator = company.creator.address === address?.toLowerCase();
   const investor =
@@ -46,7 +49,10 @@ export function Card({ company }: { company: Company }) {
           <Section component={<Details details={details} />} />
           <Section component={<Progress company={company} />} />
           {creator ? <Section component={<UmaPromise context={context} />} /> : null}
-          <Actions company={company} />
+          <Actions
+            company={company}
+            onModifyAction={() => setCompany(globalState.companies[company.projectId])}
+          />
         </div>
       </div>
     </>

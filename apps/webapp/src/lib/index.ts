@@ -178,6 +178,14 @@ export class GlobalState {
     return Object.values(this.companies)[0];
   }
 
+  async reloadInvestments(): Promise<void> {
+    Object.values(this.companies).forEach((company) => {
+      company.status.investments.length = 0;
+    });
+    const investments = await GetInvestments();
+    investments.forEach((inv) => this.processInvestment(inv));
+  }
+
   getTwitterHandle(address: Address): string {
     return this.people[address].twitter ?? '';
   }

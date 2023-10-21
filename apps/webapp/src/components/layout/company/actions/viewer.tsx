@@ -1,14 +1,15 @@
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { useCryptoVcFundProject } from '@/web3/contracts';
 import { useState } from 'react';
-import { parseEther } from 'viem';
 import { usePublicClient } from 'wagmi';
 import { ActionsContext } from './types';
-import InvestModal from '@/components/modals/invest';
+import { useAtom } from 'jotai';
+import { globalStateAtom } from '@/lib';
+import { parseEther } from 'viem';
 
 function MakeInvestAction({ loading }: { loading: boolean }) {
   return (
-    <div className="flex row lg:flex-row lg:gap-1">
+    <div className="pt-2">
       {!loading ? (
         <button
           type="submit"
@@ -70,30 +71,64 @@ function InvestActions({ context }: { context: ActionsContext }) {
     address: CRYPTO_VC_ADDRESS,
     gas: 3000000n,
   });
+
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    amount: '2',
+  });
   const publicClient = usePublicClient();
+  const [globalState] = useAtom(globalStateAtom);
 
-  const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
+  const onChange = (e: any) => {
+    const fieldName = e.target.id;
+    const fieldValue = e.target.value;
 
-  const onInvest = async (value: string) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [fieldName]: fieldValue,
+    }));
+  };
+
+  const onSubmit = async (e: any) => {
+    const safeAddress = context.company.status.safe;
+    if (!safeAddress) {
+      return;
+    }
+    e.preventDefault();
+    setLoading(true);
+
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+
     try {
-      const tx = await fundProject({ args: [context.company.projectId, parseEther(value)] });
-      setIsInvestModalOpen(false);
+      const tx = await fundProject({
+        args: [context.company.projectId, parseEther(data.get('amount') as string)],
+      });
       await publicClient.waitForTransactionReceipt(tx);
-      window.location.reload();
+      await globalState.reloadInvestments();
+      context.onModifyAction();
     } catch (e: any) {
       console.log(e);
       alert(e.reason ?? e.message);
     }
+    setLoading(false);
   };
-  const onSubmit = async (e: any) => {};
 
-  const [loading, setLoading] = useState(false);
   return (
-    <div className="flex row lg:flex-row lg:gap-1">
-      <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit}>
+      <div className="flex flex-col lg:flex-col lg:gap-1">
+        <input
+          type="number"
+          id="amount"
+          className="description bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+          placeholder={'2 DAI'}
+          onChange={onChange}
+        />
         <MakeInvestAction loading={loading} />
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
 
