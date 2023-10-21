@@ -1,6 +1,6 @@
 'use client';
 
-import { Address, formatEther, toHex } from 'viem';
+import { Address, formatEther } from 'viem';
 import { GetCompanies, GetCompany, GetInvestments, GetPromises } from './queries';
 import {
   ProjectCompleted,
@@ -88,33 +88,33 @@ export class GlobalState {
   }
 
   private processRequestedPromise(promise: TrancheRequested) {
-    const promiseId = toHex(promise.id);
+    const promiseId = promise.trancheId.toString() as Address;
     this.promises[promiseId] = {
       id: promiseId,
       text: promise.claim.toString(),
-      amount: Number(promise.amount),
+      amount: Number(formatEther(BigInt(promise.amount.toString()))),
       claimed: false,
       failed: false,
     };
-    const companyId = toHex(promise.projectId);
+    const companyId = promise.projectId.toString() as Address;
     this.companies[companyId].status.promise = this.promises[promiseId];
   }
 
   private processClaimedPromise(promise: TrancheClaimed) {
-    const promiseId = toHex(promise.id);
+    const promiseId = promise.trancheId.toString() as Address;
     this.promises[promiseId].failed = false;
     this.promises[promiseId].claimed = true;
   }
 
   private processFailedPromise(promise: TrancheFailed) {
-    const promiseId = toHex(promise.id);
+    const promiseId = promise.trancheId.toString() as Address;
     this.promises[promiseId].failed = true;
     this.promises[promiseId].claimed = false;
   }
 
   private processInvestment(investment: ProjectFunded) {
     console.log(investment);
-    const funder = toHex(investment.funder);
+    const funder = investment.funder.toString() as Address;
     if (!this.people[funder]) {
       this.people[funder] = {
         address: funder,

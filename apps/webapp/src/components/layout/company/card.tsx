@@ -6,7 +6,7 @@ import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { useCryptoVcCreateProject, useCryptoVcFundProject } from '@/web3/contracts';
 import clsx from 'clsx';
 import React, { useState } from 'react';
-import { getAddress, parseEther } from 'viem';
+import { parseEther } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
@@ -17,6 +17,7 @@ import { cryptoVcABI } from '@/web3/contracts';
 import { type MetaTransactionData, OperationType } from '@safe-global/safe-core-sdk-types';
 import InvestModal from '@/components/modals/invest';
 import PromiseModal from '@/components/modals/promise';
+import { UmaPromise } from '../../components/layout/company/promise';
 
 // Company detailsss
 
@@ -116,17 +117,6 @@ function ProgressInfo({ progress }: { progress: { investors: Person[] } }) {
   );
 }
 
-function Promise({ context }: { context: { progress: { investors: Person[] } } }) {
-  console.log(context);
-  return (
-    <>
-      <div className="grid justify-items-start w-full pt-2">
-        <div>Become the first investor! 🚀🚀🚀</div>
-      </div>
-    </>
-  );
-}
-
 function Progress({
   context,
 }: {
@@ -164,8 +154,8 @@ function ViewerActions({ company }: { company: Company }) {
   const onInvest = async (value: string) => {
     try {
       const tx = await fundProject({ args: [company.projectId, parseEther(value)] });
-      await publicClient.waitForTransactionReceipt(tx);
       setIsInvestModalOpen(false);
+      await publicClient.waitForTransactionReceipt(tx);
       // TODO: reload something?
     } catch (e: any) {
       console.log(e);
@@ -255,7 +245,7 @@ function CreatorActions({ company }: { company: Company }) {
       args: [company.projectId, parseEther(amount), toHex(assertion)],
     });
     const tx: MetaTransactionData = {
-      to: getAddress(CRYPTO_VC_ADDRESS),
+      to: CRYPTO_VC_ADDRESS,
       data,
       value: '0',
       operation: OperationType.Call,
@@ -264,7 +254,7 @@ function CreatorActions({ company }: { company: Company }) {
     try {
       const safe = await loadSafe({
         ethAdapter,
-        safeAddress: getAddress(company.status.safe),
+        safeAddress: company.status.safe,
       });
 
       await proposeSafeTransaction({
@@ -289,15 +279,13 @@ function CreatorActions({ company }: { company: Company }) {
 
   return (
     <div className="flex row lg:flex-row lg:gap-1">
-      {company.status?.safe !== '0x0' && (
-        <button
-          type="button"
-          className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-          onClick={() => setIsPromiseModalOpen(true)}
-        >
-          Request a tranche
-        </button>
-      )}
+      <button
+        type="button"
+        className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+        onClick={() => setIsPromiseModalOpen(true)}
+      >
+        Make Promise
+      </button>
       <button
         type="button"
         className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
@@ -376,7 +364,7 @@ export function Card({ company }: { company: Company }) {
         <div className="flex flex-col lg:flex-col items-center justify-center px-8 py-4">
           <Section component={<Info info={info} />} />
           <Section component={<Progress context={context} />} />
-          {creator ? <Section component={<Promise context={context} />} /> : null}
+          {creator ? <Section component={<UmaPromise context={context} />} /> : null}
           <Actions context={context} />
         </div>
       </div>

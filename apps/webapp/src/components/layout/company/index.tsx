@@ -1,5 +1,5 @@
-import { CompanyPic, Media } from './media';
-import { Card, NewCard } from './card';
+import { CompanyPic, Media } from '../../../app/company/media';
+import { Card, NewCard } from '../../../app/company/card';
 import { fakerEN } from '@faker-js/faker';
 import { Company } from '@/lib/types';
 import { fromHex } from 'viem';

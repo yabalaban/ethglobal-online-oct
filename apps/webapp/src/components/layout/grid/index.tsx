@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { ProgressLabel } from '../company/card';
+import { ProgressLabel } from '../../../app/company/card';
 import { Company } from '@/lib/types';
 
 function Grid(props: React.ComponentProps<'ul'>) {
