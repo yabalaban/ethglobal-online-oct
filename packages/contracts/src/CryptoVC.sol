@@ -171,7 +171,9 @@ contract CryptoVC is CryptoVCEvents, ERC2771Context {
 
         require(_defaultCurrency.allowance(sender, address(this)) >= amount, "Must approve DAI first");
 
-        project.funders.push(sender);
+        if (_fundings[sender][id] == 0) {
+            project.funders.push(sender);
+        }
         _fundings[sender][id] += amount;
 
         uint256 fundingLeftToMeet = project.totalFundingRequired - project.totalFundingReceived;
