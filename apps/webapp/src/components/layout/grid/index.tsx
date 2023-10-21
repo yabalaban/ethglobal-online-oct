@@ -5,8 +5,9 @@ import Image from 'next/image';
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { Company } from '@/lib/types';
+import { Company, Investment, Person, UmaPromise } from '@/lib/types';
 import { ProgressLabel } from '../company/progress';
+import { getClaimed, getFunds } from '@/lib';
 
 function Grid(props: React.ComponentProps<'ul'>) {
   return (
@@ -26,20 +27,65 @@ function GridItem(props: React.ComponentProps<'li'>) {
 
 Grid.Item = GridItem;
 
+export function CompactProgressLabel({
+  progress,
+}: {
+  progress: {
+    goal: number;
+    actual: number;
+    currency: string;
+    investors: Investment[];
+    funded: boolean;
+    completed: boolean;
+  };
+}) {
+  return (
+    <div>
+      {progress.completed ? (
+        <div className="flex flex-row lg:gap-1 items-baseline">
+          <div className="w-full text-right">
+            <p className="font-medium text-sm">Seed round is over! 🎉</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-row lg:gap-1 items-baseline self-right">
+          <div className="w-full text-right">
+            <p className="font-medium text-sm">
+              {progress.actual} {progress.currency}
+            </p>
+          </div>
+          <div>
+            <p className="font-light dark:text-white/[80%] text-sm">
+              {progress.funded ? 'claimed' : 'raised'} of {progress.goal} {progress.currency}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 function Label({ company }: { company: Company }) {
+  const funds = getFunds(company);
+  const claims = getClaimed(company);
+  const goal = Number(company.status.goal);
+  const funded = funds >= goal;
+  const actual = funded
+    ? company.status.promises.reduce((prev, p) => prev + (p.claimed ? p.amount : 0.0), 0)
+    : company.status.investments.reduce((prev, inv) => prev + inv.amount, 0);
   const progress = {
-    goal: company.status.goal,
-    actual: company.status.investments.reduce((prev, inv) => prev + inv.amount, 0),
+    goal: goal,
+    actual: actual,
     currency: 'DAI',
     investors: Object.values(company.status.investments),
-    funded: false,
-    completed: false,
+    funded: funded,
+    completed: claims >= goal,
   };
+
   return (
     <div className={clsx('absolute bottom-0 left-0 flex w-full @container/label')}>
-      <div className="flex items-center grow border bg-white/70 text-xs font-semibold text-black backdrop-blur-md dark:border-neutral-800 dark:bg-black/70 dark:text-white">
-        <div className="flex flex-row">
-          <div className="flex flex-col p-4 lg:gap-1">
+      <div className="flex items-center w-full border bg-white/70 text-xs font-semibold text-black backdrop-blur-md dark:border-neutral-800 dark:bg-black/70 dark:text-white">
+        <div className="flex flex-row w-full">
+          <div className="flex w-full flex-col p-4 lg:gap-1">
             <h3 className="text-xl mr-4 flex-grow pl-2 leading-none tracking-tight">
               {company.details?.name}
             </h3>
@@ -47,10 +93,16 @@ function Label({ company }: { company: Company }) {
               by {company.creator.ens ?? company.creator.address}
             </div>
           </div>
-          <div className="flex flex-col w-full p-4 lg:gap-1 pl-2">
+          <div className="flex shrink flex-col w-full p-4 lg:gap-1 pl-2 w-full self-right">
             <div className="tracking-tight">
-              <ProgressLabel progress={progress} compact={true} />
-              <div className="text-right">{progress.investors.length} investors</div>
+              <div>
+                <CompactProgressLabel progress={progress} />
+              </div>
+              <div>
+                {progress.investors.length > 0 ? (
+                  <div className="text-right">{progress.investors.length} investors</div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -160,9 +212,9 @@ export function SortableGrid({ companies, filters }: { companies: Company[]; fil
     if (query === 'progress') {
       companies = companies.sort(
         (c1: Company, c2: Company) =>
-          c2.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) /
+          c2.status.promises.reduce((prev, p) => prev + (p.claimed ? p.amount : 0.0), 0.0) /
             Number(c2.status.goal) -
-          c1.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) /
+          c1.status.promises.reduce((prev, p) => prev + (p.claimed ? p.amount : 0.0), 0.0) /
             Number(c1.status.goal),
       );
     } else if (query === 'goal') {
@@ -171,7 +223,7 @@ export function SortableGrid({ companies, filters }: { companies: Company[]; fil
       );
     } else if (query === 'participation') {
       companies = companies.sort(
-        (c1: Company, c2: Company) => c2.status.investments.length - c2.status.investments.length,
+        (c1: Company, c2: Company) => c2.status.investments.length - c1.status.investments.length,
       );
     }
   }

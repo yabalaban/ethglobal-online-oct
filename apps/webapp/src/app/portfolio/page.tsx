@@ -14,11 +14,7 @@ export default function PortfolioPage() {
   );
   const filters = {
     title: 'Filter by',
-    items: [
-      { title: 'All', path: '' },
-      { title: 'Portfolio', path: 'portfolio' },
-      { title: 'Saved', path: 'saved' },
-    ],
+    items: [],
   };
   return (
     <>

@@ -219,7 +219,7 @@ export function getFunds(company: Company): number {
 }
 
 export function getClaimed(company: Company): number {
-  return company.status.promises.reduce((acc, pr) => acc + pr.amount, 0);
+  return company.status.promises.reduce((acc, pr) => acc + (pr.claimed ? pr.amount : 0), 0);
 }
 
 export function getCurrentGoal(company: Company): UmaPromise | null {

@@ -68,7 +68,7 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
                 {investors.map((investor, i) => (
                   <li className="font-light text-sm dark:text-white/[80%]" key={i}>
                     <Link href={etherscanLink(investor.address)} className="" target="_blank">
-                      {investor.address}
+                      {investor.ens ? investor.ens : investor.address}
                     </Link>
                   </li>
                 ))}

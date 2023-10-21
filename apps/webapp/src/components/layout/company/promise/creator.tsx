@@ -1,24 +1,27 @@
-import { getCurrentGoal } from '@/lib';
+import Link from 'next/link';
+import { Address, encodeFunctionData, fromHex, getAddress, parseEther, toHex } from 'viem';
+import { UmaPromise } from '@/lib/types';
+import { useChainId, useWalletClient } from 'wagmi';
+import { useState } from 'react';
+import { loadSafe, proposeSafeTransaction, useEthersAdapter, useSafeService } from '@/web3/safe';
 import { ActionsContext } from '../actions/types';
 import { useEthersSigner } from '@/web3/ethersViem';
-import { useState } from 'react';
-import { broadcastMessage } from '@/lib/xmtp';
-import { loadSafe, proposeSafeTransaction, useEthersAdapter, useSafeService } from '@/web3/safe';
-import Link from 'next/link';
-import { encodeFunctionData, parseEther, toHex } from 'viem';
 import { cryptoVcABI } from '@/web3/contracts';
 import { MetaTransactionData, OperationType } from '@safe-global/safe-core-sdk-types';
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
-import { useChainId, useWalletClient } from 'wagmi';
-import { sendPush } from '@/lib/push';
+import { getCurrentGoal } from '@/lib';
 
-function ClaimGoal() {
+function CurrentGoal({ claim, safe }: { claim: UmaPromise; safe: Address }) {
+  const safeLink = 'https://app.safe.global/transactions/queue?safe=gor:' + safe;
   return (
-    <>
-      <div className="text-sm dark:text-white/[80%]">
-        There is no goal set yet, nudge the creator by sending the message below!
+    <div className="flex flex-col lg:flex-col lg:gap-1 w-full">
+      <div className="dark:text-white/[80%]">{fromHex(claim.text as any, 'string')}</div>
+      <div className="hover:underline self-center text-neutral-400 ">
+        <Link href={safeLink} target="_blank">
+          Safe
+        </Link>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -28,7 +31,7 @@ function CreateGoal({ loading }: { loading: boolean }) {
       {!loading ? (
         <button
           type="submit"
-          className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+          className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
         >
           Publish
         </button>
@@ -36,7 +39,7 @@ function CreateGoal({ loading }: { loading: boolean }) {
         <button
           disabled
           type="submit"
-          className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+          className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
         >
           <svg
             aria-hidden="true"
@@ -68,6 +71,7 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     message: 'Hi there!',
+    amount: '0.01',
   });
 
   const ethAdapter = useEthersAdapter({ chainId });
@@ -102,10 +106,14 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
     const data = encodeFunctionData({
       abi: cryptoVcABI,
       functionName: 'requestTranche',
-      args: [context.company.projectId, parseEther('10'), toHex(form.get('message') as string)],
+      args: [
+        context.company.projectId,
+        parseEther(form.get('amount') as string),
+        toHex(form.get('message') as string),
+      ],
     });
     const tx: MetaTransactionData = {
-      to: CRYPTO_VC_ADDRESS,
+      to: getAddress(CRYPTO_VC_ADDRESS),
       data,
       value: '0',
       operation: OperationType.Call,
@@ -114,7 +122,7 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
     try {
       const safe = await loadSafe({
         ethAdapter,
-        safeAddress: safeAddress,
+        safeAddress: getAddress(safeAddress),
       });
 
       await proposeSafeTransaction({
@@ -125,15 +133,7 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
       });
 
       window.open(safeLink, '_blank')?.focus();
-      const msg =
-        'New goal was published for ' +
-        context.company.details!.name +
-        '. Check details in safe: ' +
-        safeAddress;
-      const recepients = context.company.status.investments.map((inv) => inv.investor.address);
-      await sendPush(walletClient as any, context.company.details?.name ?? 'New goal!', msg);
-      await broadcastMessage(signer, msg, recepients);
-      console.log('broadcasting', msg, recepients);
+      context.onModifyAction();
     } catch (e) {
       console.log(e);
     }
@@ -161,7 +161,7 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
               onChange={onChange}
             />
           </div>
-          <div className="hover:underline self-center text-sm text-neutral-400 ">
+          <div className="hover:underline self-center text-neutral-400 ">
             <Link href={safeLink} className="" target="_blank">
               Safe
             </Link>
@@ -176,11 +176,11 @@ function CreateGoalForm({ context }: { context: ActionsContext }) {
 }
 
 export function CreatorGoalView({ context }: { context: ActionsContext }) {
-  const current = getCurrentGoal(context.company);
+  const unclaimed = getCurrentGoal(context.company);
 
-  if (!current) {
+  if (!unclaimed) {
     return <CreateGoalForm context={context} />;
   } else {
-    return <ClaimGoal />;
+    return <CurrentGoal claim={unclaimed} safe={context.company.status.safe} />;
   }
 }

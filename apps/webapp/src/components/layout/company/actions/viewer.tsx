@@ -142,6 +142,7 @@ function InvestActions({ context }: { context: ActionsContext }) {
 }
 
 export function ViewerActions({ context }: { context: ActionsContext }) {
+  console.log('hm', context);
   if (context.completed || context.funded) {
     return <TooLate />;
   } else {

@@ -7,17 +7,7 @@ export async function broadcastMessage(
   message: string,
   broadcast: Address[],
 ): Promise<void> {
-  const xmtp = await Client.create(wallet, { env: 'dev' });
-  console.log('Broadcasting from:', xmtp.address);
-  const broadcasts_canMessage = await xmtp.canMessage(broadcast);
-
-  for (let i = 0; i < broadcast.length; i++) {
-    const wallet = broadcast[i];
-    if (broadcasts_canMessage[i]) {
-      const conversation = await xmtp.conversations.newConversation(wallet);
-      await conversation.send(message);
-    }
-  }
+  broadcast.forEach(async (addr) => await sendMessage(wallet, message, addr));
 }
 
 export async function sendMessage(
