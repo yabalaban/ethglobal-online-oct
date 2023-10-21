@@ -1,4 +1,11 @@
-import { globalStateAtom } from '@/lib';
+import {
+  getClaimed,
+  getCurrentGoal,
+  getFunds,
+  globalStateAtom,
+  isCreatorContext,
+  isInvestorContext,
+} from '@/lib';
 import { Company } from '@/lib/types';
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { cryptoVcABI } from '@/web3/contracts';
@@ -7,7 +14,10 @@ import { MetaTransactionData, OperationType } from '@safe-global/safe-core-sdk-t
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 import { encodeFunctionData, parseEther, toHex } from 'viem';
-import { useChainId, useWalletClient } from 'wagmi';
+import { useAccount, useChainId, useWalletClient } from 'wagmi';
+import { ActionsContext } from '../actions/types';
+import { InvestorGoalView } from './investor';
+import { CreatorGoalView } from './creator';
 
 function PromiseClaim({ amount }: { amount: number }) {
   return (
@@ -227,18 +237,6 @@ function CreateNewRound({ context }: { context: { company: Company } }) {
   );
 }
 
-export function UmaPromise({ context }: { context: { company: Company } }) {
-  const promise = context.company.status.promise;
-  const hasPromise = promise !== null;
-  return (
-    <>
-      <div className="grid justify-items-start w-full py-2">
-        {hasPromise ? <OngoingRound context={context} /> : <CreateNewRound context={context} />}
-      </div>
-    </>
-  );
-}
-
 // function PromiseActions({ company }: { company: Company }) {
 //   const [isPromiseModalOpen, setIsPromiseModalOpen] = useState(false);
 
@@ -321,3 +319,90 @@ export function UmaPromise({ context }: { context: { company: Company } }) {
 //     </div>
 //   );
 // }
+
+function AllClaimedGoals({ company }: { company: Company }) {
+  const goals = company.status.promises;
+  return (
+    <div className="grid justify-items-start w-full pt-2">
+      {goals.length > 0 ? (
+        <div>
+          <div className="dark:text-white/[80%]">Claimed goals:</div>
+          <div>
+            <ul className="list-disc pl-4">
+              {goals.map((goal, i) => (
+                <li className="font-light text-sm dark:text-white/[80%]" key={i}>
+                  {goal.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="dark:text-white/[80%]">Become the first investor! 🚀</div>
+      )}
+    </div>
+  );
+}
+
+function Title() {
+  return (
+    <>
+      <h1 className="mb-2 text-xl font-medium">Goal</h1>
+    </>
+  );
+}
+
+export function Goals({ context }: { context: ActionsContext }) {
+  const { address } = useAccount();
+  if (!address) {
+    alert('hey');
+    return <></>;
+  }
+
+  const company = context.company;
+  const isCreator = isCreatorContext(address, company);
+  const isInvestor = isInvestorContext(address, company);
+
+  const funds = getFunds(company);
+  const goal = Number(company.status.goal);
+  const claimed = getClaimed(company);
+
+  if (claimed >= goal) {
+    return (
+      <>
+        <div className="h-full w-full py-4">
+          <Title />
+          <div>
+            <AllClaimedGoals company={company} />
+          </div>
+        </div>
+      </>
+    );
+  } else if (isInvestor) {
+    return (
+      <>
+        <div className="h-full w-full py-4">
+          <Title />
+          <div>
+            <InvestorGoalView context={context} />
+          </div>
+        </div>
+      </>
+    );
+  } else if (isCreator) {
+    return (
+      <>
+        <div className="h-full w-full py-4">
+          <Title />
+          <div>
+            <CreatorGoalView context={context} />
+          </div>
+        </div>
+      </>
+    );
+  } else if (funds < goal) {
+    return <></>;
+  } else {
+    return <></>;
+  }
+}

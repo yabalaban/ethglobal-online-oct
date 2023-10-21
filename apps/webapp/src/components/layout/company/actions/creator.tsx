@@ -10,7 +10,6 @@ import PromiseModal from '@/components/modals/promise';
 
 export function CreatorActions({ context }: { context: ActionsContext }) {
   const [isPromiseModalOpen, setIsPromiseModalOpen] = useState(false);
-
   const company = context.company;
   const chainId = useChainId();
   const { data: walletClient } = useWalletClient();

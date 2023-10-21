@@ -13,45 +13,48 @@ import { Details } from '@/components/layout/company/details';
 import { Progress } from '@/components/layout/company/progress';
 import { Actions } from '@/components/layout/company/actions';
 import { Section } from '@/components/layout/section';
-import { UmaPromise } from '@/components/layout/company/promise';
+import { Goals } from '@/components/layout/company/promise';
 
-export function Card({ company_ }: { company_: Company }) {
-  const [company, setCompany] = useState(company_);
-  const [globalState] = useAtom(globalStateAtom);
-
-  const { address } = useAccount();
+function generateContext({ address, company }: { address: string | undefined; company: Company }) {
   const creator = company.creator.address === address?.toLowerCase();
   const investor =
     company.status.investments.find((inv) => inv.investor.address === address?.toLowerCase()) !=
     null;
-
-  const details = {
-    name: company.details?.name ?? '<name>',
-    description: company.details?.description ?? '<details>',
-  };
   const progress = {
     goal: company.status.goal,
     actual: company.status.investments.reduce((acc, inv) => acc + inv.amount, 0),
     currency: 'DAI',
     investors: company.status.investments.map((inv) => inv.investor),
   };
-  const context = {
+  return {
     investor: investor,
     creator: creator,
     company: company,
     progress: progress,
   };
+}
 
+export function Card({ company }: { company: Company }) {
+  const { address } = useAccount();
+  const context_ = generateContext({ address: address, company: company });
+  const [context, setContext] = useState(context_);
+
+  const details = {
+    name: company.details?.name ?? '<name>',
+    description: company.details?.description ?? '<details>',
+  };
   return (
     <>
       <div className="bg-white dark:border-neutral-900 shadow-xl dark:bg-neutral-800 rounded-lg border border-neutral-200 h-full w-full pb-4">
         <div className="flex flex-col lg:flex-col items-center justify-center px-8 py-4">
           <Section component={<Details details={details} />} />
-          <Section component={<Progress company={company} />} />
-          {creator ? <Section component={<UmaPromise context={context} />} /> : null}
+          <Section component={<Progress company={context.company} />} />
+          <Section component={<Goals context={context} />} />
           <Actions
             company={company}
-            onModifyAction={() => setCompany(globalState.companies[company.projectId])}
+            onModifyAction={() =>
+              setContext(generateContext({ address: address, company: company }))
+            }
           />
         </div>
       </div>

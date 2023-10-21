@@ -1,15 +1,16 @@
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { useCryptoVcFundProject } from '@/web3/contracts';
 import { useState } from 'react';
-import { usePublicClient } from 'wagmi';
+import { usePublicClient, useWalletClient } from 'wagmi';
 import { ActionsContext } from './types';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
 import { parseEther } from 'viem';
+import { subscribeToChannel } from '@/lib/push';
 
 function MakeInvestAction({ loading }: { loading: boolean }) {
   return (
-    <div className="pt-2">
+    <div className="">
       {!loading ? (
         <button
           type="submit"
@@ -53,15 +54,19 @@ function TooLate() {
   }
 
   return (
-    <div className="flex row lg:flex-row lg:gap-1">
-      <div className="dark:text-white/[80%]">Too late to the party, check out another ones!</div>
-      <button
-        type="button"
-        className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        onClick={onClick}
-      >
-        Go!
-      </button>
+    <div className="flex flex-row lg:flex-row lg:gap-2">
+      <div className="self-center dark:text-white/[80%]">
+        Too late to the party, check out another ones!
+      </div>
+      <div className="self-center">
+        <button
+          type="button"
+          className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+          onClick={onClick}
+        >
+          Go!
+        </button>
+      </div>
     </div>
   );
 }
@@ -78,6 +83,7 @@ function InvestActions({ context }: { context: ActionsContext }) {
   });
   const publicClient = usePublicClient();
   const [globalState] = useAtom(globalStateAtom);
+  const { data: walletClient } = useWalletClient();
 
   const onChange = (e: any) => {
     const fieldName = e.target.id;
@@ -108,6 +114,7 @@ function InvestActions({ context }: { context: ActionsContext }) {
       });
       await publicClient.waitForTransactionReceipt(tx);
       await globalState.reloadInvestments();
+      await subscribeToChannel(walletClient as any, context.company.creator.address);
       context.onModifyAction();
     } catch (e: any) {
       console.log(e);
@@ -118,14 +125,16 @@ function InvestActions({ context }: { context: ActionsContext }) {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-col lg:flex-col lg:gap-1">
-        <input
-          type="number"
-          id="amount"
-          className="description bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
-          placeholder={'2 DAI'}
-          onChange={onChange}
-        />
+      <div className="flex flex-row lg:flex-row lg:gap-2">
+        <div className="grow">
+          <input
+            type="number"
+            id="amount"
+            className="description bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+            placeholder={'2 DAI'}
+            onChange={onChange}
+          />
+        </div>
         <MakeInvestAction loading={loading} />
       </div>
     </form>

@@ -26,7 +26,7 @@ function Page({ company }: { company: Company }) {
             <Media image={image} info={info} />
           </div>
           <div className="basis-full lg:basis-2/6 md:x-2">
-            <Card company_={company} />
+            <Card company={company} />
           </div>
         </div>
       </div>

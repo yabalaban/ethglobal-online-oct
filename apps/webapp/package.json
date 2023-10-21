@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.8.5",
+    "@cryptovc/libs": "*",
     "@faker-js/faker": "^8.2.0",
     "@headlessui/react": "^1.7.17",
     "@pushprotocol/restapi": "^1.4.23",
@@ -28,11 +29,10 @@
     "@xmtp/xmtp-js": "^11.1.1",
     "autoprefixer": "^10.4.16",
     "clsx": "^2.0.0",
-    "ethers": "^5.7",
+    "ethers": "^5.6.8",
     "framer-motion": "^10.16.4",
     "graphql": "^16.8.1",
     "jotai": "^2.4.3",
-    "@cryptovc/libs": "*",
     "lokijs": "^1.5.12",
     "next": "13.5.4",
     "pino-pretty": "^10.2.3",
@@ -46,6 +46,7 @@
     "web3.storage": "^4.5.5"
   },
   "devDependencies": {
+    "@cryptovc/contracts": "*",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/client-preset": "^4.1.0",
     "@graphql-typed-document-node/core": "^3.2.0",
@@ -53,7 +54,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@wagmi/cli": "^1.5.2",
-    "@cryptovc/contracts": "*",
     "eslint": "^8",
     "eslint-config-next": "13.5.4",
     "typescript": "^5"

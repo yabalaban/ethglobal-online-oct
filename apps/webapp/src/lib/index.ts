@@ -147,7 +147,7 @@ export class GlobalState {
     person.avatar = person.avatar === '' ? fakerEN.image.avatarGitHub() : person.avatar;
     person.ens = identity.displayName;
     if (!person.ens) {
-      person.ens = '[fake]' + fakerEN.company.catchPhraseNoun() + '.eth';
+      person.ens = fakerEN.company.catchPhraseNoun().replace(' ', '_') + '.eth';
     }
     for (const i of identity.neighbor) {
       if (i.identity.platform == 'twitter') {
@@ -220,4 +220,9 @@ export function getFunds(company: Company): number {
 
 export function getClaimed(company: Company): number {
   return company.status.promises.reduce((acc, pr) => acc + pr.amount, 0);
+}
+
+export function getCurrentGoal(company: Company): UmaPromise | null {
+  const unclaimed = company.status.promises.filter((p) => p.claimed == false);
+  return unclaimed.length > 0 ? unclaimed[0] : null;
 }
