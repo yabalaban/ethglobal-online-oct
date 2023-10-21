@@ -3,7 +3,7 @@
 import { ipfsStorage } from '@/lib/storage';
 import { Company, Person } from '@/lib/types';
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
-import { useCryptoVcCreateProject } from '@/web3/contracts';
+import { useCryptoVcCreateProject, useCryptoVcFundProject } from '@/web3/contracts';
 import clsx from 'clsx';
 import React, { useState } from 'react';
 import { parseEther } from 'viem';
@@ -11,6 +11,7 @@ import { useAccount, usePublicClient } from 'wagmi';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
 import { redirect } from 'next/navigation';
+import { Modal } from '@/components/modal';
 
 // Company detailsss
 
@@ -125,19 +126,76 @@ function Progress({
 
 // Actions
 
+const InvestModal = ({
+  onInvest,
+  onCancel,
+}: {
+  onInvest: (value: string) => void;
+  onCancel: () => void;
+}) => {
+  const [value, setValue] = useState('');
+  const isDisabled = value === '';
+
+  return (
+    <Modal title="Invest">
+      <div className="flex flex-col gap-4">
+        <input
+          type="text"
+          className="border bg-white border-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="100 DAI"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <div className="flex gap-4">
+          <button
+            className={`bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 ${
+              isDisabled ? 'bg-gray-400 hover:bg-gray-400' : ''
+            }`}
+            onClick={() => !isDisabled && onInvest(value)}
+            disabled={isDisabled}
+          >
+            Invest
+          </button>
+          <button
+            className="bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 px-4"
+            onClick={() => onCancel()}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
 function ViewerActions({ company }: { company: Company }) {
+  const { writeAsync: fundProject } = useCryptoVcFundProject({
+    address: CRYPTO_VC_ADDRESS,
+    gas: 3000000n,
+  });
+
+  const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
+
   function handleSaveClick() {
     console.log('save', company);
   }
   function handlePromiseClick() {
     console.log('promise', company);
   }
-  function handleInvestClick() {
-    console.log('invest', company);
-  }
+
+  const onInvest = async (value: string) => {
+    try {
+      await fundProject({ args: [company.projectId, parseEther(value)] });
+      setIsInvestModalOpen(false);
+      // TODO: reload something?
+    } catch (e: any) {
+      console.log(e);
+      alert(e.reason ?? e.message);
+    }
+  };
 
   return (
-    <div className="flex flex row lg:flex-row lg:gap-1">
+    <div className="flex row lg:flex-row lg:gap-1">
       <button
         type="button"
         className="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
@@ -154,11 +212,14 @@ function ViewerActions({ company }: { company: Company }) {
       </button>
       <button
         type="button"
-        className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br active:ring-4 active:outline-none focus:outline-none active:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 "
-        onClick={handleInvestClick}
+        className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+        onClick={() => setIsInvestModalOpen(true)}
       >
         Invest
       </button>
+      {isInvestModalOpen && (
+        <InvestModal onCancel={() => setIsInvestModalOpen(false)} onInvest={onInvest} />
+      )}
     </div>
   );
 }
@@ -175,7 +236,7 @@ function InvestorActions({ company }: { company: Company }) {
   }
 
   return (
-    <div className="flex flex row lg:flex-row lg:gap-1">
+    <div className="flex row lg:flex-row lg:gap-1">
       <button
         type="button"
         className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
@@ -213,7 +274,7 @@ function CreatorActions({ company }: { company: Company }) {
   }
 
   return (
-    <div className="flex flex row lg:flex-row lg:gap-1">
+    <div className="flex row lg:flex-row lg:gap-1">
       <button
         type="button"
         className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
@@ -268,10 +329,10 @@ function Section({ component }: { component: any }) {
 
 export function Card({ company }: { company: Company }) {
   const { address } = useAccount();
-  const currentAddress = address!.toLowerCase();
-  const creator = company.creator.address === currentAddress;
+  const creator = company.creator.address === address?.toLowerCase();
   const investor =
-    company.status.investments.find((inv) => inv.investor.address === currentAddress) != null;
+    company.status.investments.find((inv) => inv.investor.address === address?.toLowerCase()) !=
+    null;
 
   const info = {
     name: company.details?.name ?? '<name>',

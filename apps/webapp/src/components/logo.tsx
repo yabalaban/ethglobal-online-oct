@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import Image from 'next/image';
-const logo = require('./icons/logo.jpg');
+import logo from './icons/logo.jpg';
 
 export default function Logo({ size }: { size?: 'sm' | undefined }) {
   return (

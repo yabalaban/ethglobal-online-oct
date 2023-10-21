@@ -5,7 +5,6 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { getMenu } from '@/lib/cryptovc';
 import { Menu } from './menu';
 
-import { Button } from '@nextui-org/react';
 import { WalletClient, useChainId, useWalletClient } from 'wagmi';
 import { loadSafe, useEthersAdapter, useSafeService } from '@/web3/safe';
 import Safe from '@safe-global/protocol-kit';

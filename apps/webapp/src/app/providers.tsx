@@ -9,7 +9,6 @@ import { frameWallet, safeWallet } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { goerli } from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { NextUIProvider } from '@nextui-org/react';
 import { globalStateAtom } from '@/lib';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
@@ -52,7 +51,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} appInfo={appInfo}>
-        <NextUIProvider>{children}</NextUIProvider>
+        {children}
       </RainbowKitProvider>
     </WagmiConfig>
   );
