@@ -28,7 +28,7 @@ export type CompanyStatus = {
   safe: Address;
   goal: string;
   investments: Investment[];
-  promise: UmaPromise | null;
+  promises: UmaPromise[];
 };
 
 export type CompanyDetails = {

@@ -5,8 +5,8 @@ import Image from 'next/image';
 
 import clsx from 'clsx';
 import Link from 'next/link';
-import { ProgressLabel } from '../../../app/company/card';
 import { Company } from '@/lib/types';
+import { ProgressLabel } from '../company/progress';
 
 function Grid(props: React.ComponentProps<'ul'>) {
   return (
@@ -32,6 +32,8 @@ function Label({ company }: { company: Company }) {
     actual: company.status.investments.reduce((prev, inv) => prev + inv.amount, 0),
     currency: 'DAI',
     investors: Object.values(company.status.investments),
+    funded: false,
+    completed: false,
   };
   return (
     <div className={clsx('absolute bottom-0 left-0 flex w-full @container/label')}>
@@ -158,11 +160,15 @@ export function SortableGrid({ companies, filters }: { companies: Company[]; fil
     if (query === 'progress') {
       companies = companies.sort(
         (c1: Company, c2: Company) =>
-          c2.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) / c2.status.goal -
-          c1.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) / c1.status.goal,
+          c2.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) /
+            Number(c2.status.goal) -
+          c1.status.investments.reduce((prev, inv) => prev + inv.amount, 0.0) /
+            Number(c1.status.goal),
       );
     } else if (query === 'goal') {
-      companies = companies.sort((c1: Company, c2: Company) => c2.status.goal - c1.status.goal);
+      companies = companies.sort(
+        (c1: Company, c2: Company) => Number(c2.status.goal) - Number(c1.status.goal),
+      );
     } else if (query === 'participation') {
       companies = companies.sort(
         (c1: Company, c2: Company) => c2.status.investments.length - c2.status.investments.length,

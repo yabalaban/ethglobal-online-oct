@@ -66,7 +66,7 @@ export class GlobalState {
         safe: '0x0',
         goal: formatEther(BigInt(company.fundingRequired.toString())),
         investments: [],
-        promise: null,
+        promises: [],
       },
       details: null,
     };
@@ -97,7 +97,7 @@ export class GlobalState {
       failed: false,
     };
     const companyId = promise.projectId.toString() as Address;
-    this.companies[companyId].status.promise = this.promises[promiseId];
+    this.companies[companyId].status.promises.push(this.promises[promiseId]);
   }
 
   private processClaimedPromise(promise: TrancheClaimed) {
@@ -193,3 +193,23 @@ export const globalStateAtom = atom(async (get) => {
   await state.prepare();
   return state;
 });
+
+export function isCreatorContext(address: Address, company: Company): boolean {
+  return company.creator.address.toLowerCase() === address.toLowerCase();
+}
+
+export function isInvestorContext(address: Address, company: Company): boolean {
+  return (
+    company.status.investments.find(
+      (inv) => inv.investor.address.toLowerCase() === address.toLowerCase(),
+    ) != null
+  );
+}
+
+export function getFunds(company: Company): number {
+  return company.status.investments.reduce((acc, inv) => acc + inv.amount, 0);
+}
+
+export function getClaimed(company: Company): number {
+  return company.status.promises.reduce((acc, pr) => acc + pr.amount, 0);
+}

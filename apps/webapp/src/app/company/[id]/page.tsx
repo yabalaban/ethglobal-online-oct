@@ -1,6 +1,5 @@
 'use client';
 
-import { Page } from '@/components/layout/company';
 import { notFound } from 'next/navigation';
 import { Address, fromHex } from 'viem';
 import { useAtom } from 'jotai';
