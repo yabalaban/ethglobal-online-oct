@@ -1,5 +1,5 @@
 {
-  "name": "webapp",
+  "name": "@cryptovc/webapp",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -32,7 +32,7 @@
     "framer-motion": "^10.16.4",
     "graphql": "^16.8.1",
     "jotai": "^2.4.3",
-    "libs": "*",
+    "@cryptovc/libs": "*",
     "lokijs": "^1.5.12",
     "next": "13.5.4",
     "pino-pretty": "^10.2.3",
@@ -53,7 +53,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@wagmi/cli": "^1.5.2",
-    "contracts": "*",
+    "@cryptovc/contracts": "*",
     "eslint": "^8",
     "eslint-config-next": "13.5.4",
     "typescript": "^5"

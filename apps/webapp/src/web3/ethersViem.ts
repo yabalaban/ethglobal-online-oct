@@ -40,7 +40,9 @@ export function walletClientToSigner(walletClient: WalletClient) {
   return signer;
 }
 
-export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
+export function useEthersSigner({ chainId }: { chainId?: number } = {}):
+  | providers.JsonRpcSigner
+  | undefined {
   const { data: walletClient } = useWalletClient({ chainId });
   return useMemo(
     () => (walletClient ? walletClientToSigner(walletClient) : undefined) as any,

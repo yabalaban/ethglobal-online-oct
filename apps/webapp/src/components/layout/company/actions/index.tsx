@@ -1,13 +1,16 @@
 import InvestModal from '@/components/modals/invest';
+import MessageModal from '@/components/modals/message';
 import PromiseModal from '@/components/modals/promise';
 import { Company } from '@/lib/types';
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
 import { cryptoVcABI, useCryptoVcFundProject } from '@/web3/contracts';
+import { useEthersSigner } from '@/web3/ethersViem';
 import { loadSafe, proposeSafeTransaction, useEthersAdapter, useSafeService } from '@/web3/safe';
 import { MetaTransactionData, OperationType } from '@safe-global/safe-core-sdk-types';
 import { useState } from 'react';
 import { encodeFunctionData, parseEther, toHex } from 'viem';
 import { useChainId, usePublicClient, useWalletClient } from 'wagmi';
+import { xmtp } from '@cryptovc/libs';
 
 function ViewerActions({ company }: { company: Company }) {
   const { writeAsync: fundProject } = useCryptoVcFundProject({
@@ -58,15 +61,27 @@ function ViewerActions({ company }: { company: Company }) {
 }
 
 function InvestorActions({ company }: { company: Company }) {
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+
+  const chainId = useChainId();
+  const signer = useEthersSigner({ chainId });
+
   function handlePromiseClick() {
     console.log('promise', company);
   }
   function handleSafeClick() {
     console.log('safe', company);
   }
-  function handleMessageClick() {
-    console.log('message', company);
-  }
+
+  const onMessage = async (message: string) => {
+    if (!signer) {
+      alert('Connect wallet first');
+      return;
+    }
+    await xmtp.sendMessage(signer, message, company.creator.address);
+    setIsMessageModalOpen(false);
+    alert('Message has been sent');
+  };
 
   return (
     <div className="flex row lg:flex-row lg:gap-1">
@@ -87,10 +102,13 @@ function InvestorActions({ company }: { company: Company }) {
       <button
         type="button"
         className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        onClick={handleMessageClick}
+        onClick={() => setIsMessageModalOpen(true)}
       >
         Message
       </button>
+      {isMessageModalOpen && (
+        <MessageModal onCancel={() => setIsMessageModalOpen(false)} onMessage={onMessage} />
+      )}
     </div>
   );
 }
