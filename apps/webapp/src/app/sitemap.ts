@@ -1,4 +1,4 @@
-import { getCompanies } from '@/lib/cryptovc';
+import { globalStateAtom } from '@/lib';
 import { MetadataRoute } from 'next';
 
 type Route = {
@@ -16,12 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date().toISOString(),
   }));
 
-  const companiesPromise = getCompanies().then((companies) =>
-    companies.map((company) => ({
-      url: `${baseUrl}/company/${company.id}`,
-      lastModified: new Date().toISOString(),
-    })),
-  );
+  const companiesPromise = Object.values(gs.companies).map((company) => ({
+    url: `${baseUrl}/company/${company.projectId}`,
+    lastModified: new Date().toISOString(),
+  }));
 
   let fetchedRoutes: Route[] = [];
 

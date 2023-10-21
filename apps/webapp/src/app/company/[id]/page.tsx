@@ -1,11 +1,14 @@
+'use client';
+
 import { Page } from '@/components/layout/company';
-import { getCompany } from '@/lib/cryptovc';
 import { notFound } from 'next/navigation';
 import { Address } from 'viem';
+import { useAtom } from 'jotai';
+import { globalStateAtom } from '@/lib';
 
-export default async function CompanyPage({ params }: { params: { id: Address } }) {
-  console.log('taks taks taks');
-  const company = await getCompany(params.id);
+export default function CompanyPage({ params }: { params: { id: Address } }) {
+  const [globalState] = useAtom(globalStateAtom);
+  const company = globalState.companies[params.id];
   if (!company) return notFound();
 
   return (

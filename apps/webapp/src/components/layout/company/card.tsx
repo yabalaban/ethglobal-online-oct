@@ -1,6 +1,5 @@
 'use client';
 
-import { gs } from '@/lib';
 import { ipfsStorage } from '@/lib/storage';
 import { Company, Person } from '@/lib/types';
 import { CRYPTO_VC_ADDRESS } from '@/web3/const';
@@ -9,6 +8,9 @@ import clsx from 'clsx';
 import React, { useState } from 'react';
 import { parseEther } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
+import { useAtom } from 'jotai';
+import { globalStateAtom } from '@/lib';
+import { redirect } from 'next/navigation';
 
 // Company detailsss
 
@@ -266,9 +268,10 @@ function Section({ component }: { component: any }) {
 
 export function Card({ company }: { company: Company }) {
   const { address } = useAccount();
-  const creator = company.creator.address === address;
+  const currentAddress = address!.toLowerCase();
+  const creator = company.creator.address === currentAddress;
   const investor =
-    company.status.investments.find((inv) => inv.investor.address === address) != null;
+    company.status.investments.find((inv) => inv.investor.address === currentAddress) != null;
 
   const info = {
     name: company.details?.name ?? '<name>',
@@ -318,7 +321,7 @@ function Input({
           <input
             type="text"
             id="name"
-            className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+            className="name bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
             placeholder={prefill.name}
             onChange={onChange}
           />
@@ -330,7 +333,7 @@ function Input({
           <textarea
             id="description"
             rows={4}
-            className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+            className="description bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-500 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
             defaultValue={formData.description}
             onChange={onChange}
           />
@@ -344,7 +347,7 @@ function Input({
               <input
                 type="number"
                 id="goal"
-                className="bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-300 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
+                className="goal bg-neutral-50 border border-neutral-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-neutral-700 dark:border-neutral-800 dark:placeholder-neutral-300 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow-lg"
                 onChange={onChange}
                 placeholder={formData.goal}
               />
@@ -409,9 +412,10 @@ export function NewCard({
   });
   const [loading, setLoading] = useState(false);
   const publicClient = usePublicClient();
+  const [globalState] = useAtom(globalStateAtom);
 
   const onChange = (e: any) => {
-    const fieldName = e.target.name;
+    const fieldName = e.target.id;
     const fieldValue = e.target.value;
 
     setFormData((prevState) => ({
@@ -442,13 +446,14 @@ export function NewCard({
       goal: Number(data.get('goal')),
     };
     const cid = await ipfsStorage.store(details);
-    console.log(details);
+    console.log([cid, BigInt(details.goal)]);
     try {
       const tx = await createProject({
         args: [cid, BigInt(parseInt(formData.goal))],
       });
       await publicClient.waitForTransactionReceipt(tx);
-      await gs.fetchNewCompany(cid, details);
+      const company = await globalState.fetchNewCompany(cid, details);
+      redirect(`/company/${company.projectId}`);
     } catch {
       console.log(e);
     }

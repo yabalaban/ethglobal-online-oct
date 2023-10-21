@@ -1,8 +1,12 @@
-import { SortableGrid } from '@/components/layout/grid';
-import { getCompanies } from '@/lib/cryptovc';
+'use client';
 
-export default async function CompaniesPage() {
-  const companies = getCompanies();
+import { SortableGrid } from '@/components/layout/grid';
+import { useAtom } from 'jotai';
+import { globalStateAtom } from '@/lib';
+
+export default function CompaniesPage() {
+  const [globalState] = useAtom(globalStateAtom);
+  const companies = Object.values(globalState.companies);
   const filters = {
     title: 'Sort by',
     items: [

@@ -9,8 +9,8 @@ import { frameWallet, safeWallet } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { goerli } from 'viem/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { gs } from '@/lib';
 import { NextUIProvider } from '@nextui-org/react';
+import { globalStateAtom } from '@/lib';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [goerli, ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [goerli] : [])],
@@ -44,12 +44,11 @@ const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-(async () => {
-  await gs.prepare();
-})();
+import { useAtom } from 'jotai';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [globalState] = useAtom(globalStateAtom);
+  console.log(globalState);
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains} appInfo={appInfo}>

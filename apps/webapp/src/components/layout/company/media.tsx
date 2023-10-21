@@ -4,6 +4,8 @@ import { Person } from '@/lib/types';
 import { fakerEN } from '@faker-js/faker';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAtom } from 'jotai';
+import { globalStateAtom } from '@/lib';
 
 export function CompanyPic({ image }: { image: { src: string; alt: string } }) {
   return (
@@ -54,13 +56,19 @@ function PersonInfo({ person }: { person: Person }) {
 }
 
 function ProfileLink({ link }: { link: { title: string; path: string; icon: string } }) {
-  function onClick() {
-    console.log('open', link);
+  let href = '';
+  if (link.title === 'twitter') {
+    href += 'https://twitter.com/' + link.path;
+  } else if (link.title === 'etherscan') {
+    href += 'https://etherscan.io/address/' + link.path;
+  } else {
+    href += 'https://ipfs.io/ipfs/' + link.path;
   }
+  console.log(href);
 
   return (
     <div className="hover:underline text-neutral-300">
-      <Link href="" onClick={onClick}>
+      <Link href={href} className="some classes" target="_blank">
         {link.title}
       </Link>
     </div>
@@ -70,14 +78,14 @@ function ProfileLink({ link }: { link: { title: string; path: string; icon: stri
 function ProfileLinks({
   links,
 }: {
-  links: { eth: string; ipfs: string; twitter: string | undefined };
+  links: { address: string; ipfs: string; twitter: string | undefined };
 }) {
   return (
     <div className="self-center justify-self-end p-4">
       <div className="flex flex-col grid justify-items-end">
-        <ProfileLink link={{ title: 'etherscan', path: links.eth, icon: 'ether' }} />
+        <ProfileLink link={{ title: 'etherscan', path: links.address, icon: 'ether' }} />
         <ProfileLink link={{ title: 'ipfs', path: links.ipfs, icon: 'ipfs' }} />
-        {links.twitter ? (
+        {links.twitter !== '' ? (
           <ProfileLink link={{ title: 'twitter', path: links.twitter, icon: 'twitter' }} />
         ) : null}
       </div>
@@ -86,15 +94,17 @@ function ProfileLinks({
 }
 
 function Creator({ info }: { info: { ipfs: string; creator: Person } }) {
+  const [globalState] = useAtom(globalStateAtom);
+
   const creator = info.creator;
   const avatar = {
     src: creator.avatar ?? fakerEN.image.avatarGitHub(),
     alt: creator.ens ?? creator.address,
   };
   const links = {
-    eth: creator.ens ?? creator.address,
+    address: creator.address,
     ipfs: info.ipfs,
-    twitter: 'somecurioustest', // get from creator.identities
+    twitter: globalState.getTwitterHandle(creator.address),
   };
   return (
     <>

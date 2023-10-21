@@ -2,6 +2,7 @@ import { CompanyPic, Media } from './media';
 import { Card, NewCard } from './card';
 import { fakerEN } from '@faker-js/faker';
 import { Company } from '@/lib/types';
+import { fromHex } from 'viem';
 
 export function Page({ company }: { company: Company }) {
   const image = {
@@ -9,7 +10,7 @@ export function Page({ company }: { company: Company }) {
     alt: company.details?.description ?? '',
   };
   const info = {
-    ipfs: company.cid,
+    ipfs: fromHex(company.cid, 'string'),
     creator: company.creator,
   };
   return (

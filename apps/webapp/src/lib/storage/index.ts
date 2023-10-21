@@ -11,7 +11,7 @@ export class IpfsStorage {
   }
 
   async store(object: unknown): Promise<Address> {
-    const file = this.makeFile(JSON.stringify(object), 'promise.json');
+    const file = this.makeFile(JSON.stringify(object), 'metadata.json');
     const cid = await this.client.put([file]);
     return toHex(cid);
   }
