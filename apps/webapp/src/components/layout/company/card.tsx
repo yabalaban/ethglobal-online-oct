@@ -10,7 +10,13 @@ import { parseEther } from 'viem';
 import { useAccount, usePublicClient } from 'wagmi';
 import { useAtom } from 'jotai';
 import { globalStateAtom } from '@/lib';
-import { Modal } from '@/components/modal';
+import { useChainId, useWalletClient } from 'wagmi';
+import { loadSafe, proposeSafeTransaction, useEthersAdapter, useSafeService } from '@/web3/safe';
+import { encodeFunctionData, toHex } from 'viem';
+import { cryptoVcABI } from '@/web3/contracts';
+import { type MetaTransactionData, OperationType } from '@safe-global/safe-core-sdk-types';
+import InvestModal from '@/components/modals/invest';
+import PromiseModal from '@/components/modals/promise';
 
 // Company detailsss
 
@@ -125,67 +131,24 @@ function Progress({
 
 // Actions
 
-const InvestModal = ({
-  onInvest,
-  onCancel,
-}: {
-  onInvest: (value: string) => void;
-  onCancel: () => void;
-}) => {
-  const [value, setValue] = useState('');
-  const isDisabled = value === '';
-
-  return (
-    <Modal title="Invest">
-      <div className="flex flex-col gap-4">
-        <input
-          type="text"
-          className="border bg-white border-gray-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="100 DAI"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-        <div className="flex gap-4">
-          <button
-            className={`bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 ${
-              isDisabled ? 'bg-gray-400 hover:bg-gray-400' : ''
-            }`}
-            onClick={() => !isDisabled && onInvest(value)}
-            disabled={isDisabled}
-          >
-            Invest
-          </button>
-          <button
-            className="bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 px-4"
-            onClick={() => onCancel()}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
 function ViewerActions({ company }: { company: Company }) {
   const { writeAsync: fundProject } = useCryptoVcFundProject({
     address: CRYPTO_VC_ADDRESS,
     gas: 3000000n,
   });
+  const publicClient = usePublicClient();
 
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false);
 
   function handleSaveClick() {
     console.log('save', company);
   }
-  function handlePromiseClick() {
-    console.log('promise', company);
-  }
 
   const onInvest = async (value: string) => {
     try {
-      await fundProject({ args: [company.projectId, parseEther(value)] });
+      const tx = await fundProject({ args: [company.projectId, parseEther(value)] });
       setIsInvestModalOpen(false);
+      await publicClient.waitForTransactionReceipt(tx);
       // TODO: reload something?
     } catch (e: any) {
       console.log(e);
@@ -201,13 +164,6 @@ function ViewerActions({ company }: { company: Company }) {
         onClick={handleSaveClick}
       >
         Save
-      </button>
-      <button
-        type="button"
-        className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        onClick={handlePromiseClick}
-      >
-        Promise
       </button>
       <button
         type="button"
@@ -262,9 +218,51 @@ function InvestorActions({ company }: { company: Company }) {
 }
 
 function CreatorActions({ company }: { company: Company }) {
-  function handlePromiseClick() {
-    console.log('make promise', company);
-  }
+  const [isPromiseModalOpen, setIsPromiseModalOpen] = useState(false);
+
+  const chainId = useChainId();
+  const { data: walletClient } = useWalletClient();
+
+  const ethAdapter = useEthersAdapter({ chainId });
+  const safeService = useSafeService({ chainId });
+
+  const onAssert = async (assertion: string, amount: string) => {
+    if (!walletClient) {
+      alert('Connect wallet first');
+      return;
+    }
+
+    const data = encodeFunctionData({
+      abi: cryptoVcABI,
+      functionName: 'requestTranche',
+      args: [company.projectId, parseEther(amount), toHex(assertion)],
+    });
+    const tx: MetaTransactionData = {
+      to: CRYPTO_VC_ADDRESS,
+      data,
+      value: '0',
+      operation: OperationType.Call,
+    };
+
+    try {
+      const safe = await loadSafe({
+        ethAdapter,
+        safeAddress: company.status.safe,
+      });
+
+      await proposeSafeTransaction({
+        tx,
+        safe,
+        safeService,
+        walletClient,
+      });
+      setIsPromiseModalOpen(false);
+    } catch (e: any) {
+      console.log(e);
+      alert(e.reason ?? e.message);
+    }
+  };
+
   function handleClaimClick() {
     console.log('claim', company);
   }
@@ -277,7 +275,7 @@ function CreatorActions({ company }: { company: Company }) {
       <button
         type="button"
         className="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        onClick={handlePromiseClick}
+        onClick={() => setIsPromiseModalOpen(true)}
       >
         Make Promise
       </button>
@@ -295,6 +293,9 @@ function CreatorActions({ company }: { company: Company }) {
       >
         Send Push
       </button>
+      {isPromiseModalOpen && (
+        <PromiseModal onCancel={() => setIsPromiseModalOpen(false)} onAssert={onAssert} />
+      )}
     </div>
   );
 }

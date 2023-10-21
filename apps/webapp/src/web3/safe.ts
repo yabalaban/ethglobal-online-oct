@@ -4,6 +4,8 @@ import { ethers } from 'ethers';
 import { useMemo } from 'react';
 import { useEthersSigner } from './ethersViem';
 import { Address } from 'viem';
+import { WalletClient } from 'wagmi';
+import { type MetaTransactionData } from '@safe-global/safe-core-sdk-types';
 
 const TX_SERVICE_URLS: Record<number, string> = {
   1: 'https://safe-transaction-mainnet.safe.global',
@@ -41,4 +43,28 @@ export async function loadSafe({
   ethAdapter: EthersAdapter;
 }): Promise<Safe> {
   return Safe.create({ ethAdapter, safeAddress });
+}
+
+export async function proposeSafeTransaction({
+  tx,
+  safe,
+  walletClient,
+  safeService,
+}: {
+  tx: MetaTransactionData;
+  safe: Safe;
+  walletClient: WalletClient;
+  safeService: SafeApiKit;
+}) {
+  const safeTx = await safe.createTransaction({ safeTransactionData: tx });
+  const safeTxHash = await safe.getTransactionHash(safeTx);
+  const { data: senderSignature } = await safe.signTransactionHash(safeTxHash);
+
+  await safeService.proposeTransaction({
+    safeTxHash,
+    senderSignature,
+    safeAddress: await safe.getAddress(),
+    safeTransactionData: safeTx.data,
+    senderAddress: walletClient.account.address,
+  });
 }
