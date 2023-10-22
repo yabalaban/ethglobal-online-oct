@@ -1,4 +1,4 @@
-import { getClaimed, getFunds } from '@/lib';
+import { getClaimed, getFunds, isCreatorContext } from '@/lib';
 import { Company, Person } from '@/lib/types';
 import { etherscanLink } from '@/lib/utils';
 import clsx from 'clsx';
@@ -56,7 +56,7 @@ function ProgressBar({ ratio }: { ratio: number }) {
   );
 }
 
-function ProgressInfo({ investors }: { investors: Person[] }) {
+function ProgressInfo({ investors, creator }: { investors: Person[]; creator: boolean }) {
   return (
     <>
       <div className="grid justify-items-start w-full pt-2">
@@ -76,7 +76,11 @@ function ProgressInfo({ investors }: { investors: Person[] }) {
             </div>
           </div>
         ) : (
-          <div className="dark:text-white/[80%]">Become the first investor! 🚀</div>
+          <div>
+            {!creator ? (
+              <div className="dark:text-white/[80%]">Become the first investor! 🚀</div>
+            ) : null}
+          </div>
         )}
       </div>
     </>
@@ -114,7 +118,7 @@ export function Progress({ company }: { company: Company }) {
     <div className="py-4">
       <ProgressLabel progress={progress} compact={false} />
       {!completed ? <ProgressBar ratio={ratio} /> : null}
-      <ProgressInfo investors={investors} />
+      <ProgressInfo investors={investors} creator={isCreatorContext(address, company)} />
     </div>
   );
 }

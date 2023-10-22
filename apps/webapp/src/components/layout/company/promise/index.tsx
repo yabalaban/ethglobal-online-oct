@@ -74,7 +74,7 @@ export function Goals({ context }: { context: ActionsContext }) {
         </div>
       </>
     );
-  } else if (isCreator) {
+  } else if (isCreator && funds >= goal) {
     return (
       <>
         <div className="h-full w-full py-4">
